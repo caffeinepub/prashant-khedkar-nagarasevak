@@ -2,7 +2,7 @@ import List "mo:core/List";
 import Nat "mo:core/Nat";
 
 module {
-  type GrievanceSubmission = {
+  type OldGrievanceSubmission = {
     id : Nat;
     name : Text;
     mobile : Text;
@@ -10,7 +10,7 @@ module {
     timestamp : Int;
   };
 
-  type Project = {
+  type OldProject = {
     id : Nat;
     title : Text;
     description : Text;
@@ -18,7 +18,7 @@ module {
     category : Text;
   };
 
-  type GalleryPhoto = {
+  type OldGalleryPhoto = {
     id : Nat;
     url : Text;
     caption : Text;
@@ -26,12 +26,35 @@ module {
     timestamp : Int;
   };
 
+  type OldScheme = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    status : Text;
+    category : Text;
+    benefit : Text;
+    eligibility : Text;
+  };
+
   type OldActor = {
+    adminPassword : Text;
     grievanceCounter : Nat;
     galleryPhotoCounter : Nat;
-    grievances : [GrievanceSubmission];
-    galleryPhotos : [GalleryPhoto];
-    projects : [Project];
+    projectCounter : Nat;
+    schemeCounter : Nat;
+    grievances : List.List<OldGrievanceSubmission>;
+    galleryPhotos : List.List<OldGalleryPhoto>;
+    schemes : List.List<OldScheme>;
+    projects : List.List<OldProject>;
+  };
+
+  type NewProjectRating = {
+    id : Nat;
+    projectId : Nat;
+    rating : Nat;
+    name : Text;
+    comment : Text;
+    timestamp : Int;
   };
 
   type NewActor = {
@@ -39,20 +62,16 @@ module {
     grievanceCounter : Nat;
     galleryPhotoCounter : Nat;
     projectCounter : Nat;
-    grievances : List.List<GrievanceSubmission>;
-    galleryPhotos : List.List<GalleryPhoto>;
-    projects : List.List<Project>;
+    schemeCounter : Nat;
+    ratingCounter : Nat;
+    grievances : List.List<OldGrievanceSubmission>;
+    galleryPhotos : List.List<OldGalleryPhoto>;
+    schemes : List.List<OldScheme>;
+    projects : List.List<OldProject>;
+    projectRatings : List.List<NewProjectRating>;
   };
 
   public func run(old : OldActor) : NewActor {
-    {
-      adminPassword = "admin123";
-      grievanceCounter = old.grievanceCounter;
-      galleryPhotoCounter = old.galleryPhotoCounter;
-      projectCounter = 4;
-      grievances = List.fromArray(old.grievances);
-      galleryPhotos = List.fromArray(old.galleryPhotos);
-      projects = List.fromArray<Project>(old.projects);
-    };
+    { old with ratingCounter = 0; projectRatings = List.empty<NewProjectRating>() };
   };
 };

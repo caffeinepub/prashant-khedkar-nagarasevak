@@ -4,6 +4,7 @@ import AdminPage from "./components/AdminPage";
 import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
 import GallerySection from "./components/GallerySection";
+import GovernmentSchemesSection from "./components/GovernmentSchemesSection";
 import HeroSection from "./components/HeroSection";
 import Navbar from "./components/Navbar";
 import ProjectsSection from "./components/ProjectsSection";
@@ -28,6 +29,7 @@ export default function App() {
         <HeroSection />
         <AboutSection />
         <ProjectsSection />
+        <GovernmentSchemesSection />
         <GallerySection />
         <ContactSection />
       </main>

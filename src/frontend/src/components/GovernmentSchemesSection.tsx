@@ -1,0 +1,434 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Scheme } from "../backend.d";
+import {
+  useGetAllSchemes,
+  useGetLastSyncTime,
+  useSyncGovtSchemes,
+} from "../hooks/useQueries";
+
+type FilterTab = "all" | "active" | "past" | "upcoming";
+
+const tabs: { value: FilterTab; label: string }[] = [
+  { value: "all", label: "सर्व" },
+  { value: "active", label: "सद्यस्थिती" },
+  { value: "past", label: "भूतकाळ" },
+  { value: "upcoming", label: "येणाऱ्या" },
+];
+
+function getStatusStyle(status: string): {
+  bg: string;
+  color: string;
+  label: string;
+  icon: React.ReactNode;
+} {
+  if (status === "active") {
+    return {
+      bg: "oklch(0.60 0.18 150 / 0.14)",
+      color: "oklch(0.38 0.16 150)",
+      label: "सद्यस्थिती",
+      icon: <CheckCircle2 size={12} />,
+    };
+  }
+  if (status === "past") {
+    return {
+      bg: "oklch(0.55 0.03 243 / 0.12)",
+      color: "oklch(0.42 0.03 243)",
+      label: "भूतकाळ",
+      icon: <Clock size={12} />,
+    };
+  }
+  return {
+    bg: "oklch(0.55 0.18 260 / 0.14)",
+    color: "oklch(0.40 0.16 260)",
+    label: "येणाऱ्या",
+    icon: <Sparkles size={12} />,
+  };
+}
+
+function formatSyncTime(ts: bigint): string {
+  const ms = Number(ts) / 1_000_000;
+  return new Date(ms).toLocaleString("mr-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// 30 minutes in nanoseconds
+const THIRTY_MINUTES_NS = BigInt(30 * 60 * 1_000_000_000);
+
+function SchemeCard({ scheme, index }: { scheme: Scheme; index: number }) {
+  const statusStyle = getStatusStyle(scheme.status);
+  const schemeAny = scheme as unknown as { source?: string };
+  const isGovt = (schemeAny.source ?? "manual") === "govt";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.08 }}
+      className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300"
+    >
+      {/* Status accent line */}
+      <div
+        className="h-1.5 w-full"
+        style={{
+          background:
+            scheme.status === "active"
+              ? "oklch(0.60 0.18 150)"
+              : scheme.status === "past"
+                ? "oklch(0.55 0.03 243)"
+                : "oklch(0.55 0.18 260)",
+        }}
+      />
+
+      <div className="p-5 flex-1 flex flex-col gap-3">
+        {/* Badges row */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="px-3 py-1 rounded-full text-xs font-semibold font-body"
+            style={{
+              background: "oklch(0.65 0.22 43 / 0.10)",
+              color: "oklch(0.52 0.20 43)",
+            }}
+          >
+            {scheme.category}
+          </span>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body inline-flex items-center gap-1"
+            style={{
+              background: statusStyle.bg,
+              color: statusStyle.color,
+            }}
+          >
+            {statusStyle.icon}
+            {statusStyle.label}
+          </span>
+          {/* Source badge */}
+          {isGovt ? (
+            <span
+              className="px-2.5 py-1 rounded-full text-xs font-bold font-body inline-flex items-center gap-1"
+              style={{
+                background: "oklch(0.65 0.22 43 / 0.15)",
+                color: "oklch(0.45 0.22 43)",
+                border: "1px solid oklch(0.65 0.22 43 / 0.30)",
+              }}
+            >
+              🇮🇳 शासकीय
+            </span>
+          ) : (
+            <span
+              className="px-2.5 py-1 rounded-full text-xs font-semibold font-body inline-flex items-center gap-1"
+              style={{
+                background: "oklch(0.55 0.03 243 / 0.08)",
+                color: "oklch(0.45 0.03 243)",
+                border: "1px solid oklch(0.55 0.03 243 / 0.18)",
+              }}
+            >
+              ✋ स्वनिर्मित
+            </span>
+          )}
+        </div>
+
+        {/* Title */}
+        <h3
+          className="font-display text-lg font-bold leading-snug"
+          style={{ color: "oklch(0.28 0.04 243)" }}
+        >
+          {scheme.title}
+        </h3>
+
+        {/* Description */}
+        <p className="font-body text-sm text-muted-foreground leading-relaxed flex-1">
+          {scheme.description}
+        </p>
+
+        {/* Benefit & Eligibility */}
+        <div
+          className="rounded-xl p-3 space-y-2 mt-auto"
+          style={{ background: "oklch(0.97 0.005 43)" }}
+        >
+          <div className="flex gap-2 items-start">
+            <span
+              className="font-display text-xs font-bold shrink-0 mt-0.5"
+              style={{ color: "oklch(0.52 0.20 43)" }}
+            >
+              लाभ:
+            </span>
+            <span
+              className="font-body text-xs leading-relaxed"
+              style={{ color: "oklch(0.35 0.04 243)" }}
+            >
+              {scheme.benefit}
+            </span>
+          </div>
+          <div className="flex gap-2 items-start">
+            <span
+              className="font-display text-xs font-bold shrink-0 mt-0.5"
+              style={{ color: "oklch(0.52 0.20 43)" }}
+            >
+              पात्रता:
+            </span>
+            <span
+              className="font-body text-xs leading-relaxed"
+              style={{ color: "oklch(0.35 0.04 243)" }}
+            >
+              {scheme.eligibility}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function GovernmentSchemesSection() {
+  const { data: schemes = [], isLoading } = useGetAllSchemes();
+  const { data: lastSyncTime = 0n } = useGetLastSyncTime();
+  const { mutate: syncSchemes, isPending: isSyncing } = useSyncGovtSchemes();
+
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+
+  // Keep a stable ref to syncSchemes so the interval closure doesn't stale
+  const syncRef = useRef(syncSchemes);
+  syncRef.current = syncSchemes;
+
+  const triggerSync = useCallback(() => {
+    syncRef.current();
+  }, []);
+
+  // Auto-sync on mount if never synced or older than 30 minutes, then every 30 min
+  const didMountSync = useRef(false);
+  useEffect(() => {
+    if (!didMountSync.current) {
+      didMountSync.current = true;
+      const now = BigInt(Date.now()) * 1_000_000n;
+      const shouldSync =
+        lastSyncTime === 0n || now - lastSyncTime > THIRTY_MINUTES_NS;
+      if (shouldSync) {
+        triggerSync();
+      }
+    }
+  }, [lastSyncTime, triggerSync]);
+
+  useEffect(() => {
+    const interval = setInterval(triggerSync, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [triggerSync]);
+
+  const filtered =
+    activeTab === "all"
+      ? schemes
+      : schemes.filter((s) => s.status === activeTab);
+
+  return (
+    <section
+      id="schemes"
+      className="py-20 md:py-28"
+      style={{ background: "oklch(0.98 0.008 43 / 0.30)" }}
+    >
+      <div className="container mx-auto px-4 lg:px-8">
+        {/* Heading */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-4"
+            style={{
+              background: "oklch(0.65 0.22 43 / 0.12)",
+              color: "oklch(0.52 0.20 43)",
+            }}
+          >
+            <BookOpen size={16} />
+            <span>शासन योजना</span>
+          </div>
+          <h2
+            className="font-display text-4xl md:text-5xl font-bold mb-3"
+            style={{ color: "oklch(0.28 0.04 243)" }}
+          >
+            शासकीय योजना
+          </h2>
+          <div className="section-divider" />
+          <p className="font-body text-muted-foreground text-lg max-w-xl mx-auto mb-4">
+            प्रभाग क्र. ८ मधील नागरिकांसाठी उपलब्ध शासकीय योजना
+          </p>
+
+          {/* Sync controls row */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-4">
+            {lastSyncTime > 0n && (
+              <p
+                className="font-body text-sm"
+                style={{ color: "oklch(0.55 0.03 243)" }}
+              >
+                शेवटचे अपडेट: {formatSyncTime(lastSyncTime)}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => syncSchemes()}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold font-body transition-all duration-200 disabled:opacity-70"
+              style={{
+                background: "oklch(0.60 0.18 150 / 0.12)",
+                color: "oklch(0.38 0.16 150)",
+                border: "1px solid oklch(0.60 0.18 150 / 0.25)",
+              }}
+            >
+              <RefreshCw
+                size={14}
+                className={isSyncing ? "animate-spin" : ""}
+              />
+              {isSyncing ? "अपडेट होत आहे..." : "सरकारी अपडेट"}
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Filter Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="flex justify-center mb-4"
+        >
+          <div
+            className="inline-flex rounded-2xl p-1.5 gap-1"
+            style={{ background: "oklch(0.28 0.04 243 / 0.08)" }}
+          >
+            {tabs.map((tab) => {
+              const count =
+                tab.value === "all"
+                  ? schemes.length
+                  : schemes.filter((s) => s.status === tab.value).length;
+              const isActive = activeTab === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => setActiveTab(tab.value)}
+                  className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-all duration-200 flex items-center gap-1.5"
+                  style={
+                    isActive
+                      ? {
+                          background: "oklch(0.65 0.22 43)",
+                          color: "white",
+                          boxShadow: "0 2px 8px oklch(0.65 0.22 43 / 0.35)",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "oklch(0.40 0.04 243)",
+                        }
+                  }
+                >
+                  {tab.label}
+                  <span
+                    className="text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[1.4rem] text-center"
+                    style={
+                      isActive
+                        ? {
+                            background: "oklch(1 0 0 / 0.25)",
+                            color: "white",
+                          }
+                        : {
+                            background: "oklch(0.28 0.04 243 / 0.10)",
+                            color: "oklch(0.40 0.04 243)",
+                          }
+                    }
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Sync in progress banner */}
+        <AnimatePresence>
+          {isSyncing && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center justify-center gap-2 mb-6 mx-auto max-w-sm px-5 py-2.5 rounded-full font-body text-sm font-semibold"
+              style={{
+                background: "oklch(0.65 0.22 43 / 0.10)",
+                color: "oklch(0.45 0.20 43)",
+                border: "1px solid oklch(0.65 0.22 43 / 0.22)",
+              }}
+            >
+              <RefreshCw size={14} className="animate-spin shrink-0" />
+              शासकीय योजना अपडेट होत आहेत...
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Cards grid */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {["s1", "s2", "s3", "s4"].map((k) => (
+              <Skeleton key={k} className="h-64 rounded-2xl" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            className="text-center py-20"
+          >
+            <BookOpen
+              size={48}
+              className="mx-auto mb-4 opacity-20"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            />
+            <p
+              className="font-body text-lg"
+              style={{ color: "oklch(0.50 0.03 243)" }}
+            >
+              या श्रेणीत सध्या कोणत्याही योजना उपलब्ध नाहीत.
+            </p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((scheme, i) => (
+              <SchemeCard key={String(scheme.id)} scheme={scheme} index={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Summary line */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="text-center font-body text-muted-foreground mt-10 text-lg"
+        >
+          एकूण{" "}
+          <strong style={{ color: "oklch(0.65 0.22 43)" }}>
+            {schemes.length}+
+          </strong>{" "}
+          शासकीय योजना उपलब्ध
+        </motion.p>
+      </div>
+    </section>
+  );
+}

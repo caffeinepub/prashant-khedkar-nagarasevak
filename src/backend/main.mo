@@ -32,12 +32,75 @@ actor {
     timestamp : Int;
   };
 
-  var adminPassword = "admin123";
+  type Scheme = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    status : Text;
+    category : Text;
+    benefit : Text;
+    eligibility : Text;
+  };
+
+  type ProjectRating = {
+    id : Nat;
+    projectId : Nat;
+    rating : Nat; // 1-5
+    name : Text;
+    comment : Text;
+    timestamp : Int;
+  };
+
+  var adminPassword = "#BK1234";
   var grievanceCounter = 0;
   var galleryPhotoCounter = 0;
   var projectCounter = 4;
+  var schemeCounter = 5;
+  var ratingCounter = 0;
+
   let grievances = List.empty<GrievanceSubmission>();
   let galleryPhotos = List.empty<GalleryPhoto>();
+  let projectRatings = List.empty<ProjectRating>();
+
+  let schemes = List.fromArray<Scheme>([
+    {
+      id = 1;
+      title = "प्रधानमंत्री आवास योजना (शहरी)";
+      description = "गरीबांना शहरी भागात घर मिळवण्यास मदत करणारी योजना.";
+      status = "active";
+      category = "गृहनिर्माण";
+      benefit = "घरांसाठी सबसिडी";
+      eligibility = "नियमित गरजूंनाच";
+    },
+    {
+      id = 2;
+      title = "स्वच्छ भारत मिशन (शहरी)";
+      description = "शहरांमध्ये स्वच्छता आणि परिसर व्यवस्था सुधारण्याची योजना.";
+      status = "active";
+      category = "स्वच्छता";
+      benefit = "स्वच्छता विकास निधी";
+      eligibility = "सर्व नागरीकांसाठी";
+    },
+    {
+      id = 3;
+      title = "राजीव गांधी घरकुल योजना";
+      description = "विकासकांच्या सहाय्याने ग्रामिण भागात घरकुल बांधण्याची योजना.";
+      status = "past";
+      category = "गृहनिर्माण";
+      benefit = "घर बांधणी अनुदान";
+      eligibility = "ग्रामीण गरजूंसाठी";
+    },
+    {
+      id = 4;
+      title = "अमृत २.० - पाणीपुरवठा व सांडपाणी";
+      description = "अन्य पोषण संशोधने";
+      status = "upcoming";
+      category = "पाणी व स्वच्छता";
+      benefit = "पाणीपुरवठा सुविधा";
+      eligibility = "सर्व गुणवत्ता आवश्यक";
+    },
+  ]);
+
   let projects = List.fromArray<Project>([
     {
       id = 1;
@@ -149,5 +212,99 @@ actor {
 
   public query ({ caller }) func getAllGalleryPhotos() : async [GalleryPhoto] {
     galleryPhotos.toArray();
+  };
+
+  // Scheme management functions
+  public shared ({ caller }) func addScheme(title : Text, description : Text, category : Text, status : Text, benefit : Text, eligibility : Text) : async Nat {
+    let newScheme : Scheme = {
+      id = schemeCounter;
+      title;
+      description;
+      category;
+      status;
+      benefit;
+      eligibility;
+    };
+    schemes.add(newScheme);
+    let currentId = schemeCounter;
+    schemeCounter += 1;
+    currentId;
+  };
+
+  public shared ({ caller }) func deleteScheme(id : Nat) : async Bool {
+    let filteredSchemes = schemes.filter(
+      func(scheme) {
+        scheme.id != id;
+      }
+    );
+    schemes.clear();
+    schemes.addAll(filteredSchemes.values());
+    true;
+  };
+
+  public query ({ caller }) func getAllSchemes() : async [Scheme] {
+    schemes.toArray();
+  };
+
+  // RATING SYSTEM
+
+  public shared ({ caller }) func submitRating(projectId : Nat, rating : Nat, name : Text, comment : Text) : async Nat {
+    let newRating : ProjectRating = {
+      id = ratingCounter;
+      projectId;
+      rating;
+      name;
+      comment;
+      timestamp = Time.now();
+    };
+    projectRatings.add(newRating);
+    let currentId = ratingCounter;
+    ratingCounter += 1;
+    currentId;
+  };
+
+  public query ({ caller }) func getRatingsForProject(projectId : Nat) : async [ProjectRating] {
+    let filteredRatings = projectRatings.filter(
+      func(rating) {
+        rating.projectId == projectId;
+      }
+    );
+    filteredRatings.toArray();
+  };
+
+  public query ({ caller }) func getAverageRating(projectId : Nat) : async {
+    averageRating : Nat;
+    totalRatings : Nat;
+  } {
+    let filteredRatings = projectRatings.filter(
+      func(rating) {
+        rating.projectId == projectId;
+      }
+    );
+
+    let ratingsArray = filteredRatings.toArray();
+
+    if (ratingsArray.size() == 0) {
+      return {
+        averageRating = 0;
+        totalRatings = 0;
+      };
+    };
+
+    let sum = ratingsArray.foldLeft(
+      0,
+      func(acc, curr) {
+        acc + curr.rating;
+      },
+    );
+
+    {
+      averageRating = (sum * 10) / ratingsArray.size();
+      totalRatings = ratingsArray.size();
+    };
+  };
+
+  public query ({ caller }) func getAllRatings() : async [ProjectRating] {
+    projectRatings.toArray();
   };
 };

@@ -5,6 +5,7 @@ const navLinks = [
   { label: "मुख्यपृष्ठ", href: "#hero" },
   { label: "परिचय", href: "#about" },
   { label: "विकास कामे", href: "#projects" },
+  { label: "शासकीय योजना", href: "#schemes" },
   { label: "फोटो गॅलरी", href: "#gallery" },
   { label: "तक्रार / संपर्क", href: "#contact" },
 ];

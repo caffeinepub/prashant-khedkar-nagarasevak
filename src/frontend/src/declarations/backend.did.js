@@ -29,6 +29,23 @@ export const Project = IDL.Record({
   'description' : IDL.Text,
   'category' : IDL.Text,
 });
+export const ProjectRating = IDL.Record({
+  'id' : IDL.Nat,
+  'name' : IDL.Text,
+  'comment' : IDL.Text,
+  'projectId' : IDL.Nat,
+  'timestamp' : IDL.Int,
+  'rating' : IDL.Nat,
+});
+export const Scheme = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'eligibility' : IDL.Text,
+  'category' : IDL.Text,
+  'benefit' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
@@ -37,13 +54,36 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'addScheme' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'deleteScheme' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
   'getAllGrievances' : IDL.Func([], [IDL.Vec(GrievanceSubmission)], ['query']),
   'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
+  'getAllRatings' : IDL.Func([], [IDL.Vec(ProjectRating)], ['query']),
+  'getAllSchemes' : IDL.Func([], [IDL.Vec(Scheme)], ['query']),
+  'getAverageRating' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Record({ 'totalRatings' : IDL.Nat, 'averageRating' : IDL.Nat })],
+      ['query'],
+    ),
+  'getRatingsForProject' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(ProjectRating)],
+      ['query'],
+    ),
   'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+  'submitRating' : IDL.Func(
+      [IDL.Nat, IDL.Nat, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
 });
 
@@ -71,6 +111,23 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'category' : IDL.Text,
   });
+  const ProjectRating = IDL.Record({
+    'id' : IDL.Nat,
+    'name' : IDL.Text,
+    'comment' : IDL.Text,
+    'projectId' : IDL.Nat,
+    'timestamp' : IDL.Int,
+    'rating' : IDL.Nat,
+  });
+  const Scheme = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'eligibility' : IDL.Text,
+    'category' : IDL.Text,
+    'benefit' : IDL.Text,
+  });
   
   return IDL.Service({
     'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
@@ -79,9 +136,15 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'addScheme' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'deleteScheme' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
     'getAllGrievances' : IDL.Func(
         [],
@@ -89,7 +152,24 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
+    'getAllRatings' : IDL.Func([], [IDL.Vec(ProjectRating)], ['query']),
+    'getAllSchemes' : IDL.Func([], [IDL.Vec(Scheme)], ['query']),
+    'getAverageRating' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Record({ 'totalRatings' : IDL.Nat, 'averageRating' : IDL.Nat })],
+        ['query'],
+      ),
+    'getRatingsForProject' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(ProjectRating)],
+        ['query'],
+      ),
     'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+    'submitRating' : IDL.Func(
+        [IDL.Nat, IDL.Nat, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   });
 };

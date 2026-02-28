@@ -96,6 +96,23 @@ export interface GalleryPhoto {
     timestamp: bigint;
     caption: string;
 }
+export interface ProjectRating {
+    id: bigint;
+    name: string;
+    comment: string;
+    projectId: bigint;
+    timestamp: bigint;
+    rating: bigint;
+}
+export interface Scheme {
+    id: bigint;
+    status: string;
+    title: string;
+    description: string;
+    eligibility: string;
+    category: string;
+    benefit: string;
+}
 export interface Project {
     id: bigint;
     status: string;
@@ -113,13 +130,23 @@ export interface GrievanceSubmission {
 export interface backendInterface {
     addGalleryPhoto(url: string, caption: string, sub: string): Promise<bigint>;
     addProject(title: string, description: string, category: string, status: string): Promise<bigint>;
+    addScheme(title: string, description: string, category: string, status: string, benefit: string, eligibility: string): Promise<bigint>;
     adminLogin(password: string): Promise<boolean>;
     deleteGalleryPhoto(id: bigint): Promise<boolean>;
     deleteProject(id: bigint): Promise<boolean>;
+    deleteScheme(id: bigint): Promise<boolean>;
     getAllGalleryPhotos(): Promise<Array<GalleryPhoto>>;
     getAllGrievances(): Promise<Array<GrievanceSubmission>>;
     getAllProjects(): Promise<Array<Project>>;
+    getAllRatings(): Promise<Array<ProjectRating>>;
+    getAllSchemes(): Promise<Array<Scheme>>;
+    getAverageRating(projectId: bigint): Promise<{
+        totalRatings: bigint;
+        averageRating: bigint;
+    }>;
+    getRatingsForProject(projectId: bigint): Promise<Array<ProjectRating>>;
     submitGrievance(name: string, mobile: string, message: string): Promise<bigint>;
+    submitRating(projectId: bigint, rating: bigint, name: string, comment: string): Promise<bigint>;
     updateAdminPassword(oldPassword: string, newPassword: string): Promise<boolean>;
 }
 export class Backend implements backendInterface {
@@ -149,6 +176,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addProject(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async addScheme(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addScheme(arg0, arg1, arg2, arg3, arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addScheme(arg0, arg1, arg2, arg3, arg4, arg5);
             return result;
         }
     }
@@ -194,6 +235,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteScheme(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteScheme(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteScheme(arg0);
+            return result;
+        }
+    }
     async getAllGalleryPhotos(): Promise<Array<GalleryPhoto>> {
         if (this.processError) {
             try {
@@ -236,6 +291,65 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllRatings(): Promise<Array<ProjectRating>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllRatings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllRatings();
+            return result;
+        }
+    }
+    async getAllSchemes(): Promise<Array<Scheme>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllSchemes();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllSchemes();
+            return result;
+        }
+    }
+    async getAverageRating(arg0: bigint): Promise<{
+        totalRatings: bigint;
+        averageRating: bigint;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAverageRating(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAverageRating(arg0);
+            return result;
+        }
+    }
+    async getRatingsForProject(arg0: bigint): Promise<Array<ProjectRating>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getRatingsForProject(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getRatingsForProject(arg0);
+            return result;
+        }
+    }
     async submitGrievance(arg0: string, arg1: string, arg2: string): Promise<bigint> {
         if (this.processError) {
             try {
@@ -247,6 +361,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitGrievance(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async submitRating(arg0: bigint, arg1: bigint, arg2: string, arg3: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.submitRating(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.submitRating(arg0, arg1, arg2, arg3);
             return result;
         }
     }

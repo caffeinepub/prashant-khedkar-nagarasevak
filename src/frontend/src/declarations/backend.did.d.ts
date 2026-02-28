@@ -31,16 +31,46 @@ export interface Project {
   'description' : string,
   'category' : string,
 }
+export interface ProjectRating {
+  'id' : bigint,
+  'name' : string,
+  'comment' : string,
+  'projectId' : bigint,
+  'timestamp' : bigint,
+  'rating' : bigint,
+}
+export interface Scheme {
+  'id' : bigint,
+  'status' : string,
+  'title' : string,
+  'description' : string,
+  'eligibility' : string,
+  'category' : string,
+  'benefit' : string,
+}
 export interface _SERVICE {
   'addGalleryPhoto' : ActorMethod<[string, string, string], bigint>,
   'addProject' : ActorMethod<[string, string, string, string], bigint>,
+  'addScheme' : ActorMethod<
+    [string, string, string, string, string, string],
+    bigint
+  >,
   'adminLogin' : ActorMethod<[string], boolean>,
   'deleteGalleryPhoto' : ActorMethod<[bigint], boolean>,
   'deleteProject' : ActorMethod<[bigint], boolean>,
+  'deleteScheme' : ActorMethod<[bigint], boolean>,
   'getAllGalleryPhotos' : ActorMethod<[], Array<GalleryPhoto>>,
   'getAllGrievances' : ActorMethod<[], Array<GrievanceSubmission>>,
   'getAllProjects' : ActorMethod<[], Array<Project>>,
+  'getAllRatings' : ActorMethod<[], Array<ProjectRating>>,
+  'getAllSchemes' : ActorMethod<[], Array<Scheme>>,
+  'getAverageRating' : ActorMethod<
+    [bigint],
+    { 'totalRatings' : bigint, 'averageRating' : bigint }
+  >,
+  'getRatingsForProject' : ActorMethod<[bigint], Array<ProjectRating>>,
   'submitGrievance' : ActorMethod<[string, string, string], bigint>,
+  'submitRating' : ActorMethod<[bigint, bigint, string, string], bigint>,
   'updateAdminPassword' : ActorMethod<[string, string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;

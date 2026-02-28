@@ -1,7 +1,11 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Share2 } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
+import ShareModal from "./ShareModal";
 
 export default function HeroSection() {
+  const [shareOpen, setShareOpen] = useState(false);
+
   const handleContactClick = () => {
     const el = document.getElementById("contact");
     if (el) el.scrollIntoView({ behavior: "smooth" });
@@ -10,6 +14,10 @@ export default function HeroSection() {
   const handleScrollDown = () => {
     const el = document.getElementById("about");
     if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleShare = () => {
+    setShareOpen(true);
   };
 
   return (
@@ -145,6 +153,14 @@ export default function HeroSection() {
           >
             अधिक जाणून घ्या
           </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="flex items-center gap-2 px-8 py-4 rounded-full font-display font-bold text-lg text-white border-2 border-white/60 transition-all duration-200 hover:bg-white/10 hover:border-white"
+          >
+            <Share2 size={20} />
+            शेअर करा
+          </button>
         </motion.div>
       </div>
 
@@ -167,6 +183,8 @@ export default function HeroSection() {
       >
         <ChevronDown size={36} />
       </motion.button>
+
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
     </section>
   );
 }

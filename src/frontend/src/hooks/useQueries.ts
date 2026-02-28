@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GalleryPhoto, GrievanceSubmission, Project } from "../backend.d";
+import type {
+  GalleryPhoto,
+  GrievanceSubmission,
+  Project,
+  ProjectRating,
+  Scheme,
+} from "../backend.d";
 import { useActor } from "./useActor";
 
 export function useGetAllProjects() {
@@ -112,6 +118,98 @@ export function useDeleteProject() {
   });
 }
 
+export function useGetAllSchemes() {
+  const { actor, isFetching } = useActor();
+  return useQuery<Scheme[]>({
+    queryKey: ["schemes"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllSchemes();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAddScheme() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      title,
+      description,
+      category,
+      status,
+      benefit,
+      eligibility,
+    }: {
+      title: string;
+      description: string;
+      category: string;
+      status: string;
+      benefit: string;
+      eligibility: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.addScheme(
+        title,
+        description,
+        category,
+        status,
+        benefit,
+        eligibility,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["schemes"] });
+    },
+  });
+}
+
+export function useDeleteScheme() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteScheme(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["schemes"] });
+    },
+  });
+}
+
+export function useSyncGovtSchemes() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      return (
+        actor as unknown as { syncGovtSchemes(): Promise<string> }
+      ).syncGovtSchemes();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["schemes"] });
+      queryClient.invalidateQueries({ queryKey: ["lastSyncTime"] });
+    },
+  });
+}
+
+export function useGetLastSyncTime() {
+  const { actor, isFetching } = useActor();
+  return useQuery<bigint>({
+    queryKey: ["lastSyncTime"],
+    queryFn: async () => {
+      if (!actor) return 0n;
+      return (
+        actor as unknown as { getLastSyncTime(): Promise<bigint> }
+      ).getLastSyncTime();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useAdminLogin() {
   const { actor } = useActor();
   return useMutation({
@@ -156,6 +254,72 @@ export function useSubmitGrievance() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["grievances"] });
+    },
+  });
+}
+
+export function useGetAverageRating(projectId: bigint) {
+  const { actor, isFetching } = useActor();
+  return useQuery<{ totalRatings: bigint; averageRating: bigint }>({
+    queryKey: ["averageRating", String(projectId)],
+    queryFn: async () => {
+      if (!actor) return { totalRatings: 0n, averageRating: 0n };
+      return actor.getAverageRating(projectId);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetRatingsForProject(projectId: bigint) {
+  const { actor, isFetching } = useActor();
+  return useQuery<ProjectRating[]>({
+    queryKey: ["ratingsForProject", String(projectId)],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getRatingsForProject(projectId);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllRatings() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ProjectRating[]>({
+    queryKey: ["allRatings"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllRatings();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useSubmitRating() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      rating,
+      name,
+      comment,
+    }: {
+      projectId: bigint;
+      rating: bigint;
+      name: string;
+      comment: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.submitRating(projectId, rating, name, comment);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["averageRating", String(variables.projectId)],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["ratingsForProject", String(variables.projectId)],
+      });
+      queryClient.invalidateQueries({ queryKey: ["allRatings"] });
     },
   });
 }
