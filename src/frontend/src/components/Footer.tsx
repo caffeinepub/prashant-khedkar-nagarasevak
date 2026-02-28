@@ -6,6 +6,8 @@ const navLinks = [
   { label: "परिचय", href: "#about" },
   { label: "विकास कामे", href: "#projects" },
   { label: "शासकीय योजना", href: "#schemes" },
+  { label: "नागरी सेवा", href: "#civic-services" },
+  { label: "माहिती", href: "#information" },
   { label: "फोटो गॅलरी", href: "#gallery" },
   { label: "तक्रार / संपर्क", href: "#contact" },
 ];
@@ -33,15 +35,26 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
           {/* Brand */}
           <div>
-            <div
-              className="font-display text-xl font-bold mb-2"
-              style={{ color: "oklch(0.65 0.22 43)" }}
-            >
-              नगरसेवक प्रशांत उर्फ भैय्या खेडकर
+            {/* KMC Logo */}
+            <div className="flex items-center gap-3 mb-4">
+              <img
+                src="/assets/generated/kmc-logo-transparent.dim_200x200.png"
+                alt="कोल्हापूर महानगरपालिका"
+                className="h-12 w-12 rounded-full object-contain shrink-0"
+                style={{ background: "oklch(1 0 0 / 0.06)" }}
+              />
+              <div>
+                <div
+                  className="font-display text-lg font-bold leading-tight"
+                  style={{ color: "oklch(0.65 0.22 43)" }}
+                >
+                  नगरसेवक प्रशांत उर्फ भैय्या खेडकर
+                </div>
+                <p className="font-body text-white/50 text-xs mt-0.5">
+                  कोल्हापूर महानगरपालिका | प्रभाग क्र. ८
+                </p>
+              </div>
             </div>
-            <p className="font-body text-white/60 text-base mb-4">
-              प्रभाग क्र. ८, कोल्हापूर महानगरपालिका
-            </p>
             <p
               className="font-display italic text-lg font-bold"
               style={{ color: "oklch(0.80 0.12 43)" }}

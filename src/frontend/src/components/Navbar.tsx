@@ -8,6 +8,8 @@ const navLinks = [
   { label: "परिचय", href: "#about" },
   { label: "कामे", href: "#projects" },
   { label: "योजना", href: "#schemes" },
+  { label: "नागरी सेवा", href: "#civic-services" },
+  { label: "माहिती", href: "#information" },
   { label: "फोटो", href: "#gallery" },
   { label: "संपर्क", href: "#contact" },
 ];
@@ -49,17 +51,24 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => handleNavClick("#hero")}
-              className="flex flex-col leading-tight text-left"
+              className="flex items-center gap-2.5 text-left"
             >
-              <span
-                className="font-display font-bold text-base md:text-lg"
-                style={{ color: "oklch(0.65 0.22 43)" }}
-              >
-                नगरसेवक प्रशांत उर्फ भैय्या खेडकर
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground font-body">
-                प्रभाग क्र. ८ • कोल्हापूर महानगरपालिका
-              </span>
+              <img
+                src="/assets/generated/kmc-logo-transparent.dim_200x200.png"
+                alt="कोल्हापूर महानगरपालिका"
+                className="h-8 w-8 rounded-full object-contain shrink-0"
+              />
+              <div className="flex flex-col leading-tight">
+                <span
+                  className="font-display font-bold text-base md:text-lg"
+                  style={{ color: "oklch(0.65 0.22 43)" }}
+                >
+                  नगरसेवक प्रशांत उर्फ भैय्या खेडकर
+                </span>
+                <span className="text-xs md:text-sm text-muted-foreground font-body">
+                  प्रभाग क्र. ८ • कोल्हापूर महानगरपालिका
+                </span>
+              </div>
             </button>
 
             {/* Desktop nav */}

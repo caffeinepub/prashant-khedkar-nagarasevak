@@ -8,6 +8,221 @@ import type {
 } from "../backend.d";
 import { useActor } from "./useActor";
 
+// ─── CivicService (localStorage-backed) ───────────────────────────────────────
+
+export interface CivicService {
+  id: bigint;
+  title: string;
+  icon: string;
+  link: string;
+  description: string;
+  isActive: boolean;
+  category: string;
+  buttonLabel: string;
+}
+
+const CIVIC_STORAGE_KEY = "kmc_civic_services_v1";
+
+const DEFAULT_CIVIC_SERVICES: CivicService[] = [
+  {
+    id: 1n,
+    icon: "📄",
+    title: "जन्म प्रमाणपत्र अर्ज",
+    description: "मुलाच्या जन्मानंतर ३० दिवसांत ऑनलाइन नोंदणी करा",
+    category: "दस्तऐवज",
+    link: "https://mahaonline.gov.in",
+    buttonLabel: "अर्ज करा",
+    isActive: true,
+  },
+  {
+    id: 2n,
+    icon: "📋",
+    title: "मृत्यू प्रमाणपत्र अर्ज",
+    description: "मृत्यूनंतर तातडीने ऑनलाइन नोंदणी करा",
+    category: "दस्तऐवज",
+    link: "https://mahaonline.gov.in",
+    buttonLabel: "अर्ज करा",
+    isActive: true,
+  },
+  {
+    id: 3n,
+    icon: "🏠",
+    title: "मालमत्ता कर भरणा",
+    description: "ऑनलाइन मालमत्ता कर भरा आणि थकबाकी तपासा",
+    category: "करसेवा",
+    link: "https://kolhapurcorporation.gov.in",
+    buttonLabel: "माहिती पहा",
+    isActive: true,
+  },
+  {
+    id: 4n,
+    icon: "💧",
+    title: "पाणी कनेक्शन अर्ज",
+    description: "नवीन पाणी कनेक्शनसाठी ऑनलाइन अर्ज करा",
+    category: "पाणी सेवा",
+    link: "https://kolhapurcorporation.gov.in",
+    buttonLabel: "अर्ज करा",
+    isActive: true,
+  },
+  {
+    id: 5n,
+    icon: "🏗️",
+    title: "बांधकाम परवाना",
+    description: "नवीन बांधकाम किंवा नूतनीकरणासाठी परवाना मिळवा",
+    category: "परवाने",
+    link: "https://kolhapurcorporation.gov.in",
+    buttonLabel: "अर्ज करा",
+    isActive: true,
+  },
+  {
+    id: 6n,
+    icon: "🔍",
+    title: "अर्ज स्थिती तपासा",
+    description: "जन्म/मृत्यू नोंदणी अर्जाची सद्यस्थिती ऑनलाइन तपासा",
+    category: "दस्तऐवज",
+    link: "https://mahaonline.gov.in",
+    buttonLabel: "माहिती पहा",
+    isActive: true,
+  },
+];
+
+function loadCivicServices(): CivicService[] {
+  try {
+    const raw = localStorage.getItem(CIVIC_STORAGE_KEY);
+    if (!raw) return DEFAULT_CIVIC_SERVICES;
+    const parsed = JSON.parse(raw) as Array<{
+      id: string;
+      title: string;
+      icon: string;
+      link: string;
+      description: string;
+      isActive: boolean;
+      category: string;
+      buttonLabel: string;
+    }>;
+    return parsed.map((s) => ({ ...s, id: BigInt(s.id) }));
+  } catch {
+    return DEFAULT_CIVIC_SERVICES;
+  }
+}
+
+function saveCivicServices(services: CivicService[]): void {
+  const serializable = services.map((s) => ({ ...s, id: String(s.id) }));
+  localStorage.setItem(CIVIC_STORAGE_KEY, JSON.stringify(serializable));
+}
+
+function getNextCivicId(services: CivicService[]): bigint {
+  if (services.length === 0) return 1n;
+  const max = services.reduce((m, s) => (s.id > m ? s.id : m), 0n);
+  return max + 1n;
+}
+
+export function useGetAllCivicServices() {
+  return useQuery<CivicService[]>({
+    queryKey: ["civicServices"],
+    queryFn: async () => loadCivicServices(),
+    staleTime: 0,
+  });
+}
+
+export function useAddCivicService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      icon,
+      title,
+      description,
+      category,
+      link,
+      buttonLabel,
+    }: {
+      icon: string;
+      title: string;
+      description: string;
+      category: string;
+      link: string;
+      buttonLabel: string;
+    }) => {
+      const services = loadCivicServices();
+      const newService: CivicService = {
+        id: getNextCivicId(services),
+        icon,
+        title,
+        description,
+        category,
+        link,
+        buttonLabel,
+        isActive: true,
+      };
+      saveCivicServices([...services, newService]);
+      return newService.id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["civicServices"] });
+    },
+  });
+}
+
+export function useDeleteCivicService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      const services = loadCivicServices();
+      saveCivicServices(services.filter((s) => s.id !== id));
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["civicServices"] });
+    },
+  });
+}
+
+export function useUpdateCivicService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      icon,
+      title,
+      description,
+      category,
+      link,
+      buttonLabel,
+      isActive,
+    }: {
+      id: bigint;
+      icon: string;
+      title: string;
+      description: string;
+      category: string;
+      link: string;
+      buttonLabel: string;
+      isActive: boolean;
+    }) => {
+      const services = loadCivicServices();
+      const updated = services.map((s) =>
+        s.id === id
+          ? {
+              id,
+              icon,
+              title,
+              description,
+              category,
+              link,
+              buttonLabel,
+              isActive,
+            }
+          : s,
+      );
+      saveCivicServices(updated);
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["civicServices"] });
+    },
+  });
+}
+
 export function useGetAllProjects() {
   const { actor, isFetching } = useActor();
   return useQuery<Project[]>({

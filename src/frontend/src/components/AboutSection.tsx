@@ -70,7 +70,8 @@ export default function AboutSection() {
                 <img
                   src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
                   alt="नगरसेवक प्रशांत उर्फ भैय्या खेडकर"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
+                  style={{ display: "block" }}
                 />
               </div>
               {/* Floating badge */}

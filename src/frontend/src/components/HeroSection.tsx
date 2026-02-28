@@ -45,7 +45,7 @@ export default function HeroSection() {
         }}
       />
 
-      {/* Bhaiya Khedkar Portrait - right side */}
+      {/* Bhaiya Khedkar Portrait - right side (desktop only) */}
       <motion.div
         initial={{ opacity: 0, x: 60 }}
         animate={{ opacity: 1, x: 0 }}
@@ -58,17 +58,41 @@ export default function HeroSection() {
           alt="नगरसेवक भैय्या खेडकर"
           className="h-full w-auto object-cover object-top"
           style={{
-            maskImage:
-              "linear-gradient(to left, black 60%, transparent 100%), linear-gradient(to top, transparent 0%, black 15%)",
             WebkitMaskImage:
-              "linear-gradient(to left, black 60%, transparent 100%)",
-            maskComposite: "intersect",
+              "linear-gradient(to left, black 55%, transparent 100%)",
+            maskImage: "linear-gradient(to left, black 55%, transparent 100%)",
           }}
         />
       </motion.div>
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 py-24 mt-16 md:text-left md:pl-16 md:max-w-2xl">
+        {/* Mobile portrait - shown only on small screens, above the text */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="flex justify-center mb-6 md:hidden"
+        >
+          <div className="relative">
+            <div
+              className="w-32 h-32 rounded-full overflow-hidden border-4 shadow-2xl"
+              style={{ borderColor: "oklch(0.65 0.22 43)" }}
+            >
+              <img
+                src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
+                alt="नगरसेवक भैय्या खेडकर"
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
+            <div
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-white font-bold text-xs shadow-lg whitespace-nowrap"
+              style={{ background: "oklch(0.65 0.22 43)", fontSize: "0.65rem" }}
+            >
+              नगरसेवक
+            </div>
+          </div>
+        </motion.div>
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

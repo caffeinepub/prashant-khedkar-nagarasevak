@@ -12,13 +12,16 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  useAddCivicService,
   useAddGalleryPhoto,
   useAddProject,
   useAddScheme,
   useAdminLogin,
+  useDeleteCivicService,
   useDeleteGalleryPhoto,
   useDeleteProject,
   useDeleteScheme,
+  useGetAllCivicServices,
   useGetAllGalleryPhotos,
   useGetAllGrievances,
   useGetAllProjects,
@@ -26,9 +29,11 @@ import {
   useGetAllSchemes,
   useSyncGovtSchemes,
   useUpdateAdminPassword,
+  useUpdateCivicService,
 } from "@/hooks/useQueries";
 import {
   BookOpen,
+  Building2,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -1248,6 +1253,381 @@ function SchemesTab() {
   );
 }
 
+// ─── Civic Services Tab ───────────────────────────────────────────────────────
+
+function CivicServicesTab() {
+  const { data: services = [], isLoading } = useGetAllCivicServices();
+  const { mutateAsync: addService, isPending: isAdding } = useAddCivicService();
+  const { mutateAsync: deleteService, isPending: isDeleting } =
+    useDeleteCivicService();
+  const { mutateAsync: updateService } = useUpdateCivicService();
+
+  const [deletingId, setDeletingId] = useState<bigint | null>(null);
+  const [icon, setIcon] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [link, setLink] = useState("");
+  const [buttonLabel, setButtonLabel] = useState("");
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !icon.trim() ||
+      !title.trim() ||
+      !description.trim() ||
+      !category.trim() ||
+      !link.trim() ||
+      !buttonLabel.trim()
+    ) {
+      toast.error("कृपया सर्व माहिती भरा.");
+      return;
+    }
+    try {
+      await addService({
+        icon: icon.trim(),
+        title: title.trim(),
+        description: description.trim(),
+        category: category.trim(),
+        link: link.trim(),
+        buttonLabel: buttonLabel.trim(),
+      });
+      toast.success("नागरी सेवा यशस्वीरित्या जोडली!");
+      setIcon("");
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setLink("");
+      setButtonLabel("");
+    } catch {
+      toast.error("काहीतरी चूक झाली.");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    setDeletingId(id);
+    try {
+      await deleteService(id);
+      toast.success("सेवा हटवली.");
+    } catch {
+      toast.error("सेवा हटवता आली नाही.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleToggleActive = async (service: (typeof services)[0]) => {
+    try {
+      await updateService({
+        id: service.id,
+        icon: service.icon,
+        title: service.title,
+        description: service.description,
+        category: service.category,
+        link: service.link,
+        buttonLabel: service.buttonLabel,
+        isActive: !service.isActive,
+      });
+      toast.success(service.isActive ? "सेवा निष्क्रिय केली." : "सेवा सक्रिय केली.");
+    } catch {
+      toast.error("स्थिती बदलता आली नाही.");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add form */}
+      <div
+        className="rounded-2xl p-6 border"
+        style={{
+          borderColor: "oklch(0.65 0.22 43 / 0.20)",
+          background: "oklch(0.65 0.22 43 / 0.04)",
+        }}
+      >
+        <h3
+          className="font-display font-bold text-base mb-4"
+          style={{ color: "oklch(0.28 0.04 243)" }}
+        >
+          नवीन नागरी सेवा जोडा
+        </h3>
+        <form onSubmit={handleAdd} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="cs-icon"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                आयकन (Emoji) *
+              </Label>
+              <Input
+                id="cs-icon"
+                type="text"
+                placeholder="उदा. 📄"
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label
+                htmlFor="cs-title"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                शीर्षक *
+              </Label>
+              <Input
+                id="cs-title"
+                type="text"
+                placeholder="उदा. जन्म प्रमाणपत्र अर्ज"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="cs-description"
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              वर्णन *
+            </Label>
+            <Textarea
+              id="cs-description"
+              placeholder="सेवेचे थोडक्यात वर्णन..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              rows={2}
+              className="rounded-lg font-body text-sm resize-none"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="cs-category"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                श्रेणी *
+              </Label>
+              <Input
+                id="cs-category"
+                type="text"
+                placeholder="उदा. दस्तऐवज"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label
+                htmlFor="cs-link"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                लिंक (URL) *
+              </Label>
+              <Input
+                id="cs-link"
+                type="url"
+                placeholder="https://mahaonline.gov.in"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="cs-btn-label"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                बटणाचा मजकूर *
+              </Label>
+              <Input
+                id="cs-btn-label"
+                type="text"
+                placeholder="उदा. अर्ज करा"
+                value={buttonLabel}
+                onChange={(e) => setButtonLabel(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={isAdding}
+              className="h-10 px-6 rounded-xl font-display font-bold text-sm text-white"
+              style={{ background: "oklch(0.65 0.22 43)" }}
+            >
+              {isAdding ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  जोडत आहे...
+                </>
+              ) : (
+                "सेवा जोडा"
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Services list */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3
+            className="font-display font-bold text-base"
+            style={{ color: "oklch(0.28 0.04 243)" }}
+          >
+            सध्याच्या नागरी सेवा
+          </h3>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body"
+            style={{
+              background: "oklch(0.28 0.04 243 / 0.08)",
+              color: "oklch(0.28 0.04 243)",
+            }}
+          >
+            एकूण: {services.length}
+          </span>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2
+              className="animate-spin"
+              size={28}
+              style={{ color: "oklch(0.65 0.22 43)" }}
+            />
+          </div>
+        ) : services.length === 0 ? (
+          <div
+            className="rounded-2xl p-10 text-center border"
+            style={{
+              borderColor: "oklch(0.28 0.04 243 / 0.10)",
+              background: "oklch(0.97 0.005 243)",
+            }}
+          >
+            <Building2
+              size={36}
+              className="mx-auto mb-3 opacity-30"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            />
+            <p
+              className="font-body text-sm"
+              style={{ color: "oklch(0.28 0.04 243 / 0.50)" }}
+            >
+              अजून कोणतीही नागरी सेवा जोडलेली नाही
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {services.map((service) => (
+              <div
+                key={String(service.id)}
+                className="flex items-center gap-3 rounded-xl p-3 border"
+                style={{
+                  borderColor: service.isActive
+                    ? "oklch(0.60 0.18 150 / 0.20)"
+                    : "oklch(0.28 0.04 243 / 0.08)",
+                  background: service.isActive
+                    ? "oklch(0.60 0.18 150 / 0.04)"
+                    : "oklch(0.98 0.003 243)",
+                }}
+              >
+                <span className="text-xl shrink-0">{service.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p
+                      className="font-display font-bold text-sm truncate"
+                      style={{ color: "oklch(0.28 0.04 243)" }}
+                    >
+                      {service.title}
+                    </p>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-xs font-semibold font-body shrink-0"
+                      style={{
+                        background: "oklch(0.65 0.22 43 / 0.10)",
+                        color: "oklch(0.52 0.20 43)",
+                      }}
+                    >
+                      {service.category}
+                    </span>
+                  </div>
+                  <p
+                    className="font-body text-xs truncate mt-0.5"
+                    style={{ color: "oklch(0.50 0.02 243)" }}
+                  >
+                    {service.link}
+                  </p>
+                </div>
+                {/* Active toggle */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className="text-xs font-body"
+                    style={{
+                      color: service.isActive
+                        ? "oklch(0.42 0.16 150)"
+                        : "oklch(0.55 0.03 243)",
+                    }}
+                  >
+                    {service.isActive ? "सक्रिय" : "बंद"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleActive(service)}
+                    className="relative inline-flex h-5 w-9 rounded-full transition-colors duration-200 focus:outline-none"
+                    style={{
+                      background: service.isActive
+                        ? "oklch(0.60 0.18 150)"
+                        : "oklch(0.75 0.02 243)",
+                    }}
+                    aria-label={service.isActive ? "निष्क्रिय करा" : "सक्रिय करा"}
+                  >
+                    <span
+                      className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                      style={{
+                        transform: service.isActive
+                          ? "translateX(16px)"
+                          : "translateX(0)",
+                      }}
+                    />
+                  </button>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeleting && deletingId === service.id}
+                  onClick={() => handleDelete(service.id)}
+                  className="shrink-0 h-8 w-8 p-0 rounded-lg hover:bg-red-50"
+                  style={{ color: "oklch(0.55 0.20 25)" }}
+                >
+                  {isDeleting && deletingId === service.id ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Ratings Tab ──────────────────────────────────────────────────────────────
 
 const STAR_POSITIONS_ADMIN = [1, 2, 3, 4, 5] as const;
@@ -1703,6 +2083,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               <span>योजना</span>
             </TabsTrigger>
             <TabsTrigger
+              value="civic"
+              className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
+            >
+              <Building2 size={13} />
+              <span className="hidden sm:inline">नागरी सेवा</span>
+              <span className="sm:hidden">सेवा</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="ratings"
               className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
             >
@@ -1729,6 +2117,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </TabsContent>
             <TabsContent value="schemes" className="mt-0">
               <SchemesTab />
+            </TabsContent>
+            <TabsContent value="civic" className="mt-0">
+              <CivicServicesTab />
             </TabsContent>
             <TabsContent value="ratings" className="mt-0">
               <RatingsTab />
