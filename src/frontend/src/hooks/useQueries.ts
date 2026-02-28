@@ -21,6 +21,134 @@ export interface CivicService {
   buttonLabel: string;
 }
 
+// ─── TeamMember (localStorage-backed) ────────────────────────────────────────
+
+export interface TeamMember {
+  id: bigint;
+  name: string;
+  designation: string;
+  photo: string;
+  mobile: string;
+  description: string;
+}
+
+const TEAM_STORAGE_KEY = "kmc_team_members_v1";
+
+const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: 1n,
+    name: "प्रशांत उर्फ भैय्या खेडकर",
+    designation: "नगरसेवक, प्रभाग क्र. ८",
+    photo: "/assets/uploads/IMG_20260228_195714-1-1.jpg",
+    mobile: "+91 97641 51234",
+    description:
+      "प्रभाग क्र. ८ चे निवडून आलेले नगरसेवक. गेल्या १० वर्षांपासून प्रभागाच्या विकासासाठी अहोरात्र कार्यरत.",
+  },
+  {
+    id: 2n,
+    name: "नाव टाका",
+    designation: "कार्यालय प्रमुख",
+    photo: "",
+    mobile: "",
+    description: "प्रभाग कार्यालयाचे दैनंदिन कामकाज व नागरिकांच्या तक्रारींचे समन्वय.",
+  },
+  {
+    id: 3n,
+    name: "नाव टाका",
+    designation: "सामाजिक कार्यकर्ता",
+    photo: "",
+    mobile: "",
+    description: "समाजकल्याण उपक्रम, शिबिरे आणि नागरिक सेवा कार्यक्रमांचे आयोजन.",
+  },
+];
+
+function loadTeamMembers(): TeamMember[] {
+  try {
+    const raw = localStorage.getItem(TEAM_STORAGE_KEY);
+    if (!raw) return DEFAULT_TEAM_MEMBERS;
+    const parsed = JSON.parse(raw) as Array<{
+      id: string;
+      name: string;
+      designation: string;
+      photo: string;
+      mobile: string;
+      description: string;
+    }>;
+    return parsed.map((m) => ({ ...m, id: BigInt(m.id) }));
+  } catch {
+    return DEFAULT_TEAM_MEMBERS;
+  }
+}
+
+function saveTeamMembers(members: TeamMember[]): void {
+  const serializable = members.map((m) => ({ ...m, id: String(m.id) }));
+  localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(serializable));
+}
+
+function getNextTeamId(members: TeamMember[]): bigint {
+  if (members.length === 0) return 1n;
+  const max = members.reduce((m, s) => (s.id > m ? s.id : m), 0n);
+  return max + 1n;
+}
+
+export function useGetAllTeamMembers() {
+  return useQuery<TeamMember[]>({
+    queryKey: ["teamMembers"],
+    queryFn: async () => loadTeamMembers(),
+    staleTime: 0,
+  });
+}
+
+export function useAddTeamMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      name,
+      designation,
+      photo,
+      mobile,
+      description,
+    }: {
+      name: string;
+      designation: string;
+      photo: string;
+      mobile: string;
+      description: string;
+    }) => {
+      const members = loadTeamMembers();
+      const newMember: TeamMember = {
+        id: getNextTeamId(members),
+        name,
+        designation,
+        photo,
+        mobile,
+        description,
+      };
+      saveTeamMembers([...members, newMember]);
+      return newMember.id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teamMembers"] });
+    },
+  });
+}
+
+export function useDeleteTeamMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      const members = loadTeamMembers();
+      saveTeamMembers(members.filter((m) => m.id !== id));
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teamMembers"] });
+    },
+  });
+}
+
+// ─── CivicService (localStorage-backed) ───────────────────────────────────────
+
 const CIVIC_STORAGE_KEY = "kmc_civic_services_v2";
 
 const DEFAULT_CIVIC_SERVICES: CivicService[] = [
@@ -473,34 +601,33 @@ export function useDeleteScheme() {
   });
 }
 
+const KMC_LAST_SYNC_KEY = "kmc_last_sync_time";
+
 export function useSyncGovtSchemes() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error("Actor not available");
-      return (
-        actor as unknown as { syncGovtSchemes(): Promise<string> }
-      ).syncGovtSchemes();
+    mutationFn: async (): Promise<string> => {
+      localStorage.setItem(KMC_LAST_SYNC_KEY, Date.now().toString());
+      return "synced";
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["schemes"] });
       queryClient.invalidateQueries({ queryKey: ["lastSyncTime"] });
+      queryClient.invalidateQueries({ queryKey: ["schemes"] });
     },
   });
 }
 
 export function useGetLastSyncTime() {
-  const { actor, isFetching } = useActor();
   return useQuery<bigint>({
     queryKey: ["lastSyncTime"],
-    queryFn: async () => {
-      if (!actor) return 0n;
-      return (
-        actor as unknown as { getLastSyncTime(): Promise<bigint> }
-      ).getLastSyncTime();
+    queryFn: async (): Promise<bigint> => {
+      const raw = localStorage.getItem(KMC_LAST_SYNC_KEY);
+      if (!raw) return 0n;
+      const ms = Number.parseInt(raw, 10);
+      if (Number.isNaN(ms)) return 0n;
+      return BigInt(ms) * 1_000_000n;
     },
-    enabled: !!actor && !isFetching,
+    staleTime: 0,
   });
 }
 

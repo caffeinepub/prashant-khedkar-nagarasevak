@@ -5,6 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetAllTeamMembers } from "@/hooks/useQueries";
 import { Download, ExternalLink, Phone } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -329,6 +330,140 @@ function DownloadsSubSection() {
   );
 }
 
+/* ─── Team Sub-Section ───────────────────────────────────────── */
+function TeamSubSection() {
+  const { data: members = [], isLoading } = useGetAllTeamMembers();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div
+          className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: "oklch(0.65 0.22 43)" }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+        className="text-center mb-8"
+      >
+        <p
+          className="font-body text-sm"
+          style={{ color: "oklch(0.50 0.03 243)" }}
+        >
+          प्रभाग क्र. ८ च्या विकासासाठी कार्यरत प्रमुख व्यक्ती
+        </p>
+      </motion.div>
+
+      {members.length === 0 ? (
+        <div
+          className="rounded-2xl p-12 text-center border"
+          style={{
+            borderColor: "oklch(0.28 0.04 243 / 0.10)",
+            background: "oklch(0.97 0.005 243)",
+          }}
+        >
+          <p
+            className="font-body text-base"
+            style={{ color: "oklch(0.28 0.04 243 / 0.45)" }}
+          >
+            Admin Panel मधून "टीम" tab मध्ये सदस्य जोडा
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {members.map((member, i) => (
+            <motion.div
+              key={String(member.id)}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.08 }}
+              className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
+            >
+              {/* Photo area */}
+              <div
+                className="relative h-44 flex items-center justify-center"
+                style={{ background: "oklch(0.65 0.22 43 / 0.08)" }}
+              >
+                {member.photo ? (
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <div
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold"
+                    style={{
+                      background: "oklch(0.65 0.22 43 / 0.15)",
+                      color: "oklch(0.52 0.20 43)",
+                    }}
+                  >
+                    {member.name.charAt(0)}
+                  </div>
+                )}
+                {/* Designation badge overlay */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 px-3 py-2"
+                  style={{
+                    background:
+                      "linear-gradient(to top, oklch(0.18 0.04 243 / 0.85), transparent)",
+                  }}
+                >
+                  <p className="font-display font-bold text-xs text-white truncate">
+                    {member.designation}
+                  </p>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-4 space-y-2">
+                <p
+                  className="font-display font-bold text-base leading-snug"
+                  style={{ color: "oklch(0.28 0.04 243)" }}
+                >
+                  {member.name}
+                </p>
+
+                {member.description && (
+                  <p
+                    className="font-body text-xs leading-relaxed line-clamp-3"
+                    style={{ color: "oklch(0.45 0.03 243)" }}
+                  >
+                    {member.description}
+                  </p>
+                )}
+
+                {member.mobile && (
+                  <a
+                    href={`tel:${member.mobile.replace(/[\s-]/g, "")}`}
+                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-body font-semibold text-xs transition-all duration-200 hover:opacity-90"
+                    style={{
+                      background: "oklch(0.65 0.22 43 / 0.10)",
+                      color: "oklch(0.52 0.20 43)",
+                    }}
+                  >
+                    <Phone size={11} />
+                    {member.mobile}
+                  </a>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Main Section ───────────────────────────────────────────── */
 export default function InformationSection() {
   return (
@@ -399,6 +534,12 @@ export default function InformationSection() {
               >
                 📥 दस्तऐवज
               </TabsTrigger>
+              <TabsTrigger
+                value="team"
+                className="px-4 py-2 rounded-xl font-body font-semibold text-sm data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+              >
+                👥 व्यवस्थापन टीम
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -411,6 +552,9 @@ export default function InformationSection() {
           </TabsContent>
           <TabsContent value="downloads">
             <DownloadsSubSection />
+          </TabsContent>
+          <TabsContent value="team">
+            <TeamSubSection />
           </TabsContent>
         </Tabs>
       </div>

@@ -439,6 +439,18 @@ export default function GovernmentSchemesSection() {
           </div>
         </motion.div>
 
+        {/* ── KMC Notice ── */}
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.45, delay: 0.18 }}
+          className="text-center font-body text-xs mb-6"
+          style={{ color: "oklch(0.50 0.06 43)" }}
+        >
+          📢 या योजना KMC पोर्टलशी जोडल्या आहेत. अधिकृत माहितीसाठी KMC पोर्टल पहा.
+        </motion.p>
+
         {/* Filter Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}

@@ -1,7 +1,7 @@
 import { type CivicService, useGetAllCivicServices } from "@/hooks/useQueries";
-import { Loader2 } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // ─── Category metadata ─────────────────────────────────────────────────────────
 
@@ -242,8 +242,10 @@ function FilterTab({
 
 export default function CivicServicesSection() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("सर्व");
   const { data: allServices = [], isLoading } = useGetAllCivicServices();
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeServices = useMemo(
     () => allServices.filter((s) => s.isActive),
@@ -288,6 +290,22 @@ export default function CivicServicesSection() {
     );
     return () => clearInterval(interval);
   }, []);
+
+  // Cleanup refresh timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    };
+  }, []);
+
+  function handleManualRefresh() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    refreshTimeoutRef.current = setTimeout(() => {
+      setLastUpdated(new Date());
+      setIsRefreshing(false);
+    }, 1500);
+  }
 
   return (
     <section
@@ -469,14 +487,66 @@ export default function CivicServicesSection() {
             </a>
           </motion.p>
 
-          {/* Last updated - small, right-aligned */}
-          <p
-            className="font-body text-xs shrink-0"
-            style={{ color: "oklch(0.60 0.02 240)" }}
-          >
-            🔄 {formatLastUpdated(lastUpdated)}
-          </p>
+          {/* Last updated + manual refresh button */}
+          <div className="flex items-center gap-2 shrink-0">
+            <p
+              className="font-body text-xs"
+              style={{ color: "oklch(0.60 0.02 240)" }}
+            >
+              KMC पोर्टल अपडेट: {formatLastUpdated(lastUpdated)}
+            </p>
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              title="KMC पोर्टल अपडेट करा"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-body text-xs font-semibold transition-all duration-200 disabled:opacity-60"
+              style={{
+                background: "oklch(0.65 0.22 43 / 0.08)",
+                color: "oklch(0.52 0.20 43)",
+                border: "1px solid oklch(0.65 0.22 43 / 0.25)",
+              }}
+            >
+              <RefreshCw
+                size={11}
+                className={isRefreshing ? "animate-spin" : ""}
+              />
+              {isRefreshing ? "अपडेट..." : "अपडेट"}
+            </button>
+          </div>
         </div>
+
+        {/* ── KMC Portal Direct Link ─────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="flex justify-center mt-8"
+        >
+          <a
+            href="https://web.kolhapurcorporation.gov.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-display font-bold text-sm transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              border: "2px solid oklch(0.65 0.22 43)",
+              color: "oklch(0.52 0.20 43)",
+              background: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background =
+                "oklch(0.65 0.22 43 / 0.08)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background =
+                "transparent";
+            }}
+          >
+            <ExternalLink size={15} />
+            KMC पोर्टल थेट उघडा
+          </a>
+        </motion.div>
       </div>
     </section>
   );

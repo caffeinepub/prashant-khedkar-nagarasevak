@@ -16,17 +16,20 @@ import {
   useAddGalleryPhoto,
   useAddProject,
   useAddScheme,
+  useAddTeamMember,
   useAdminLogin,
   useDeleteCivicService,
   useDeleteGalleryPhoto,
   useDeleteProject,
   useDeleteScheme,
+  useDeleteTeamMember,
   useGetAllCivicServices,
   useGetAllGalleryPhotos,
   useGetAllGrievances,
   useGetAllProjects,
   useGetAllRatings,
   useGetAllSchemes,
+  useGetAllTeamMembers,
   useSyncGovtSchemes,
   useUpdateAdminPassword,
   useUpdateCivicService,
@@ -48,6 +51,7 @@ import {
   Shield,
   Star,
   Trash2,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -1628,6 +1632,311 @@ function CivicServicesTab() {
   );
 }
 
+// ─── Team Members Tab ─────────────────────────────────────────────────────────
+
+function TeamMembersTab() {
+  const { data: members = [], isLoading } = useGetAllTeamMembers();
+  const { mutateAsync: addMember, isPending: isAdding } = useAddTeamMember();
+  const { mutateAsync: deleteMember, isPending: isDeleting } =
+    useDeleteTeamMember();
+  const [deletingId, setDeletingId] = useState<bigint | null>(null);
+
+  const [name, setName] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [description, setDescription] = useState("");
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !designation.trim()) {
+      toast.error("कृपया नाव आणि पद भरा.");
+      return;
+    }
+    try {
+      await addMember({
+        name: name.trim(),
+        designation: designation.trim(),
+        photo: photo.trim(),
+        mobile: mobile.trim(),
+        description: description.trim(),
+      });
+      toast.success("सदस्य यशस्वीरित्या जोडला!");
+      setName("");
+      setDesignation("");
+      setPhoto("");
+      setMobile("");
+      setDescription("");
+    } catch {
+      toast.error("काहीतरी चूक झाली.");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    setDeletingId(id);
+    try {
+      await deleteMember(id);
+      toast.success("सदस्य हटवला.");
+    } catch {
+      toast.error("सदस्य हटवता आला नाही.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add form */}
+      <div
+        className="rounded-2xl p-6 border"
+        style={{
+          borderColor: "oklch(0.65 0.22 43 / 0.20)",
+          background: "oklch(0.65 0.22 43 / 0.04)",
+        }}
+      >
+        <h3
+          className="font-display font-bold text-base mb-4"
+          style={{ color: "oklch(0.28 0.04 243)" }}
+        >
+          नवीन सदस्य जोडा
+        </h3>
+        <form onSubmit={handleAdd} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="tm-name"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                पूर्ण नाव *
+              </Label>
+              <Input
+                id="tm-name"
+                type="text"
+                placeholder="उदा. राजेश पाटील"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="tm-designation"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                पद / हुद्दा *
+              </Label>
+              <Input
+                id="tm-designation"
+                type="text"
+                placeholder="उदा. कार्यालय प्रमुख"
+                value={designation}
+                onChange={(e) => setDesignation(e.target.value)}
+                required
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="tm-photo"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                फोटो URL
+              </Label>
+              <Input
+                id="tm-photo"
+                type="url"
+                placeholder="https://example.com/photo.jpg"
+                value={photo}
+                onChange={(e) => setPhoto(e.target.value)}
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="tm-mobile"
+                className="font-body text-sm font-semibold"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                मोबाईल नंबर
+              </Label>
+              <Input
+                id="tm-mobile"
+                type="text"
+                placeholder="उदा. +91 98765 43210"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                className="h-10 rounded-lg font-body text-sm"
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="tm-description"
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              थोडक्यात माहिती
+            </Label>
+            <Textarea
+              id="tm-description"
+              placeholder="सदस्याच्या कार्याचे थोडक्यात वर्णन..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="rounded-lg font-body text-sm resize-none"
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={isAdding}
+            className="h-10 px-6 rounded-xl font-display font-bold text-sm text-white"
+            style={{ background: "oklch(0.65 0.22 43)" }}
+          >
+            {isAdding ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                जोडत आहे...
+              </>
+            ) : (
+              "सदस्य जोडा"
+            )}
+          </Button>
+        </form>
+      </div>
+
+      {/* Members list */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3
+            className="font-display font-bold text-base"
+            style={{ color: "oklch(0.28 0.04 243)" }}
+          >
+            सध्याचे सदस्य
+          </h3>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body"
+            style={{
+              background: "oklch(0.28 0.04 243 / 0.08)",
+              color: "oklch(0.28 0.04 243)",
+            }}
+          >
+            एकूण: {members.length}
+          </span>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2
+              className="animate-spin"
+              size={28}
+              style={{ color: "oklch(0.65 0.22 43)" }}
+            />
+          </div>
+        ) : members.length === 0 ? (
+          <div
+            className="rounded-2xl p-10 text-center border"
+            style={{
+              borderColor: "oklch(0.28 0.04 243 / 0.10)",
+              background: "oklch(0.97 0.005 243)",
+            }}
+          >
+            <Users
+              size={36}
+              className="mx-auto mb-3 opacity-30"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            />
+            <p
+              className="font-body text-sm"
+              style={{ color: "oklch(0.28 0.04 243 / 0.50)" }}
+            >
+              अजून कोणताही सदस्य जोडलेला नाही
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {members.map((member) => (
+              <div
+                key={String(member.id)}
+                className="flex items-center gap-4 rounded-xl p-3 border"
+                style={{
+                  borderColor: "oklch(0.28 0.04 243 / 0.08)",
+                  background: "oklch(0.98 0.003 243)",
+                }}
+              >
+                {/* Avatar */}
+                {member.photo ? (
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="w-12 h-12 object-cover rounded-full shrink-0 border-2"
+                    style={{ borderColor: "oklch(0.65 0.22 43 / 0.30)" }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-12 h-12 rounded-full shrink-0 flex items-center justify-center text-lg font-bold"
+                    style={{
+                      background: "oklch(0.65 0.22 43 / 0.15)",
+                      color: "oklch(0.52 0.20 43)",
+                    }}
+                  >
+                    {member.name.charAt(0)}
+                  </div>
+                )}
+
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="font-display font-bold text-sm truncate"
+                    style={{ color: "oklch(0.28 0.04 243)" }}
+                  >
+                    {member.name}
+                  </p>
+                  <p
+                    className="font-body text-xs truncate"
+                    style={{ color: "oklch(0.52 0.20 43)" }}
+                  >
+                    {member.designation}
+                  </p>
+                  {member.mobile && (
+                    <p
+                      className="font-body text-xs truncate"
+                      style={{ color: "oklch(0.50 0.02 243)" }}
+                    >
+                      📞 {member.mobile}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeleting && deletingId === member.id}
+                  onClick={() => handleDelete(member.id)}
+                  className="shrink-0 h-8 w-8 p-0 rounded-lg hover:bg-red-50"
+                  style={{ color: "oklch(0.55 0.20 25)" }}
+                >
+                  {isDeleting && deletingId === member.id ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Ratings Tab ──────────────────────────────────────────────────────────────
 
 const STAR_POSITIONS_ADMIN = [1, 2, 3, 4, 5] as const;
@@ -2091,6 +2400,13 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               <span className="sm:hidden">सेवा</span>
             </TabsTrigger>
             <TabsTrigger
+              value="team"
+              className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
+            >
+              <Users size={13} />
+              <span>टीम</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="ratings"
               className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
             >
@@ -2120,6 +2436,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </TabsContent>
             <TabsContent value="civic" className="mt-0">
               <CivicServicesTab />
+            </TabsContent>
+            <TabsContent value="team" className="mt-0">
+              <TeamMembersTab />
             </TabsContent>
             <TabsContent value="ratings" className="mt-0">
               <RatingsTab />
