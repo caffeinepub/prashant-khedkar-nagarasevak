@@ -112,10 +112,15 @@ export interface GrievanceSubmission {
 }
 export interface backendInterface {
     addGalleryPhoto(url: string, caption: string, sub: string): Promise<bigint>;
+    addProject(title: string, description: string, category: string, status: string): Promise<bigint>;
+    adminLogin(password: string): Promise<boolean>;
+    deleteGalleryPhoto(id: bigint): Promise<boolean>;
+    deleteProject(id: bigint): Promise<boolean>;
     getAllGalleryPhotos(): Promise<Array<GalleryPhoto>>;
     getAllGrievances(): Promise<Array<GrievanceSubmission>>;
     getAllProjects(): Promise<Array<Project>>;
     submitGrievance(name: string, mobile: string, message: string): Promise<bigint>;
+    updateAdminPassword(oldPassword: string, newPassword: string): Promise<boolean>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -130,6 +135,62 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addGalleryPhoto(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async addProject(arg0: string, arg1: string, arg2: string, arg3: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addProject(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addProject(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async adminLogin(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminLogin(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminLogin(arg0);
+            return result;
+        }
+    }
+    async deleteGalleryPhoto(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteGalleryPhoto(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteGalleryPhoto(arg0);
+            return result;
+        }
+    }
+    async deleteProject(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteProject(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteProject(arg0);
             return result;
         }
     }
@@ -186,6 +247,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.submitGrievance(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateAdminPassword(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateAdminPassword(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateAdminPassword(arg0, arg1);
             return result;
         }
     }

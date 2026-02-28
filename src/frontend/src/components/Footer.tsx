@@ -148,17 +148,29 @@ export default function Footer() {
           <p className="font-body text-white/50">
             © {currentYear} सर्व हक्क राखीव | नगरसेवक प्रशांत उर्फ भैय्या खेडकर
           </p>
-          <p className="font-body text-white/40">
-            Built with ❤️ using{" "}
-            <a
-              href={caffeineLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-white/60 transition-colors"
+          <div className="flex items-center gap-4">
+            <p className="font-body text-white/40">
+              Built with ❤️ using{" "}
+              <a
+                href={caffeineLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-white/60 transition-colors"
+              >
+                caffeine.ai
+              </a>
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = "/admin";
+              }}
+              className="font-body text-white/20 hover:text-white/40 transition-colors text-xs"
+              aria-label="Admin Panel"
             >
-              caffeine.ai
-            </a>
-          </p>
+              Admin
+            </button>
+          </div>
         </div>
       </div>
     </footer>

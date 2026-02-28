@@ -32,10 +32,19 @@ export const Project = IDL.Record({
 
 export const idlService = IDL.Service({
   'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+  'addProject' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
+  'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
   'getAllGrievances' : IDL.Func([], [IDL.Vec(GrievanceSubmission)], ['query']),
   'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
   'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+  'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -65,6 +74,14 @@ export const idlFactory = ({ IDL }) => {
   
   return IDL.Service({
     'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+    'addProject' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
+    'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
     'getAllGrievances' : IDL.Func(
         [],
@@ -73,6 +90,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
     'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+    'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   });
 };
 

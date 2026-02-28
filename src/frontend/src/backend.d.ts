@@ -30,8 +30,13 @@ export interface GrievanceSubmission {
 }
 export interface backendInterface {
     addGalleryPhoto(url: string, caption: string, sub: string): Promise<bigint>;
+    addProject(title: string, description: string, category: string, status: string): Promise<bigint>;
+    adminLogin(password: string): Promise<boolean>;
+    deleteGalleryPhoto(id: bigint): Promise<boolean>;
+    deleteProject(id: bigint): Promise<boolean>;
     getAllGalleryPhotos(): Promise<Array<GalleryPhoto>>;
     getAllGrievances(): Promise<Array<GrievanceSubmission>>;
     getAllProjects(): Promise<Array<Project>>;
     submitGrievance(name: string, mobile: string, message: string): Promise<bigint>;
+    updateAdminPassword(oldPassword: string, newPassword: string): Promise<boolean>;
 }

@@ -3,7 +3,6 @@ import { useGetAllGalleryPhotos } from "@/hooks/useQueries";
 import { Camera, ZoomIn } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
-import AdminGalleryPanel from "./AdminGalleryPanel";
 
 type GalleryItem = {
   src: string;
@@ -144,11 +143,6 @@ export default function GallerySection() {
             </motion.div>
           ))}
         </div>
-      </div>
-
-      {/* Admin panel */}
-      <div className="container mx-auto px-4 lg:px-8 mt-10 flex justify-end">
-        <AdminGalleryPanel />
       </div>
 
       {/* Lightbox */}

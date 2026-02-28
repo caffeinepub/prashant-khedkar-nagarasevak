@@ -37,8 +37,30 @@ export default function HeroSection() {
         }}
       />
 
+      {/* Bhaiya Khedkar Portrait - right side */}
+      <motion.div
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.4, duration: 0.8 }}
+        className="absolute right-0 bottom-0 z-10 hidden md:block"
+        style={{ height: "90%", maxHeight: "700px" }}
+      >
+        <img
+          src="/assets/uploads/IMG_20260228_195714-1.jpg"
+          alt="नगरसेवक भैय्या खेडकर"
+          className="h-full w-auto object-cover object-top"
+          style={{
+            maskImage:
+              "linear-gradient(to left, black 60%, transparent 100%), linear-gradient(to top, transparent 0%, black 15%)",
+            WebkitMaskImage:
+              "linear-gradient(to left, black 60%, transparent 100%)",
+            maskComposite: "intersect",
+          }}
+        />
+      </motion.div>
+
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-4 py-24 mt-16">
+      <div className="relative z-10 text-center text-white px-4 py-24 mt-16 md:text-left md:pl-16 md:max-w-2xl">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -33,10 +33,15 @@ export interface Project {
 }
 export interface _SERVICE {
   'addGalleryPhoto' : ActorMethod<[string, string, string], bigint>,
+  'addProject' : ActorMethod<[string, string, string, string], bigint>,
+  'adminLogin' : ActorMethod<[string], boolean>,
+  'deleteGalleryPhoto' : ActorMethod<[bigint], boolean>,
+  'deleteProject' : ActorMethod<[bigint], boolean>,
   'getAllGalleryPhotos' : ActorMethod<[], Array<GalleryPhoto>>,
   'getAllGrievances' : ActorMethod<[], Array<GrievanceSubmission>>,
   'getAllProjects' : ActorMethod<[], Array<Project>>,
   'submitGrievance' : ActorMethod<[string, string, string], bigint>,
+  'updateAdminPassword' : ActorMethod<[string, string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

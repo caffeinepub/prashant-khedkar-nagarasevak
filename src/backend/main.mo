@@ -1,8 +1,12 @@
 import Array "mo:core/Array";
+import Text "mo:core/Text";
 import Time "mo:core/Time";
+import Nat "mo:core/Nat";
+import List "mo:core/List";
+import Iter "mo:core/Iter";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   type GrievanceSubmission = {
     id : Nat;
@@ -28,33 +32,35 @@ actor {
     timestamp : Int;
   };
 
+  var adminPassword = "admin123";
   var grievanceCounter = 0;
   var galleryPhotoCounter = 0;
-  var grievances : [GrievanceSubmission] = [];
-  var galleryPhotos : [GalleryPhoto] = [];
-  var projects : [Project] = [
+  var projectCounter = 4;
+  let grievances = List.empty<GrievanceSubmission>();
+  let galleryPhotos = List.empty<GalleryPhoto>();
+  let projects = List.fromArray<Project>([
     {
       id = 1;
-      title = "Park Renovation";
-      description = "Renovate the central park with new playground equipment.";
-      status = "Completed";
-      category = "Infrastructure";
+      title = "पार्क नूतनीकरण";
+      description = "केंद्रिय बागेला नवीन खेळांची साधने बसविणे.";
+      status = "पूर्ण झाले";
+      category = "विकासकामे";
     },
     {
       id = 2;
-      title = "Road Repairs";
-      description = "Fix potholes and resurface main roads in the district.";
-      status = "In Progress";
-      category = "Infrastructure";
+      title = "रोड दुरुस्ती";
+      description = "मुख्य मार्गांची खड्डे बुजविणे आणि पुनःनिर्माण करणे.";
+      status = "चालू";
+      category = "विकासकामे";
     },
     {
       id = 3;
-      title = "Community Center Programs";
-      description = "Introduce new educational and recreational programs.";
-      status = "Planned";
-      category = "Community";
+      title = "समुदाय केंद्र कार्यक्रम";
+      description = "शैक्षणिक आणि मनोरंजक कार्यक्रम सुरू करणे.";
+      status = "योजना";
+      category = "समाजकल्याण";
     },
-  ];
+  ]);
 
   public shared ({ caller }) func submitGrievance(name : Text, mobile : Text, message : Text) : async Nat {
     let newGrievance : GrievanceSubmission = {
@@ -64,7 +70,7 @@ actor {
       message;
       timestamp = Time.now();
     };
-    grievances := grievances.concat([newGrievance]);
+    grievances.add(newGrievance);
     let currentId = grievanceCounter;
     grievanceCounter += 1;
     currentId;
@@ -78,21 +84,70 @@ actor {
       sub;
       timestamp = Time.now();
     };
-    galleryPhotos := galleryPhotos.concat([newPhoto]);
+    galleryPhotos.add(newPhoto);
     let currentId = galleryPhotoCounter;
     galleryPhotoCounter += 1;
     currentId;
   };
 
+  public shared ({ caller }) func deleteGalleryPhoto(id : Nat) : async Bool {
+    let filteredPhotos = galleryPhotos.filter(
+      func(photo) {
+        photo.id != id;
+      }
+    );
+    galleryPhotos.clear();
+    galleryPhotos.addAll(filteredPhotos.values());
+    true;
+  };
+
+  public shared ({ caller }) func addProject(title : Text, description : Text, category : Text, status : Text) : async Nat {
+    let newProject : Project = {
+      id = projectCounter;
+      title;
+      description;
+      category;
+      status;
+    };
+    projects.add(newProject);
+    let currentId = projectCounter;
+    projectCounter += 1;
+    currentId;
+  };
+
+  public shared ({ caller }) func deleteProject(id : Nat) : async Bool {
+    let filteredProjects = projects.filter(
+      func(project) {
+        project.id != id;
+      }
+    );
+    projects.clear();
+    projects.addAll(filteredProjects.values());
+    true;
+  };
+
+  public shared ({ caller }) func adminLogin(password : Text) : async Bool {
+    Text.equal(password, adminPassword);
+  };
+
+  public shared ({ caller }) func updateAdminPassword(oldPassword : Text, newPassword : Text) : async Bool {
+    if (Text.equal(oldPassword, adminPassword)) {
+      adminPassword := newPassword;
+      true;
+    } else {
+      false;
+    };
+  };
+
   public query ({ caller }) func getAllGrievances() : async [GrievanceSubmission] {
-    grievances;
+    grievances.toArray();
   };
 
   public query ({ caller }) func getAllProjects() : async [Project] {
-    projects;
+    projects.toArray();
   };
 
   public query ({ caller }) func getAllGalleryPhotos() : async [GalleryPhoto] {
-    galleryPhotos;
+    galleryPhotos.toArray();
   };
 };

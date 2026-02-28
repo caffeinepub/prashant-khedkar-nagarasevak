@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GalleryPhoto, Project } from "../backend.d";
+import type { GalleryPhoto, GrievanceSubmission, Project } from "../backend.d";
 import { useActor } from "./useActor";
 
 export function useGetAllProjects() {
@@ -26,6 +26,18 @@ export function useGetAllGalleryPhotos() {
   });
 }
 
+export function useGetAllGrievances() {
+  const { actor, isFetching } = useActor();
+  return useQuery<GrievanceSubmission[]>({
+    queryKey: ["grievances"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllGrievances();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
 export function useAddGalleryPhoto() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -44,6 +56,84 @@ export function useAddGalleryPhoto() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["galleryPhotos"] });
+    },
+  });
+}
+
+export function useDeleteGalleryPhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteGalleryPhoto(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["galleryPhotos"] });
+    },
+  });
+}
+
+export function useAddProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      title,
+      description,
+      category,
+      status,
+    }: {
+      title: string;
+      description: string;
+      category: string;
+      status: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.addProject(title, description, category, status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
+export function useDeleteProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteProject(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
+export function useAdminLogin() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async (password: string) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.adminLogin(password);
+    },
+  });
+}
+
+export function useUpdateAdminPassword() {
+  const { actor } = useActor();
+  return useMutation({
+    mutationFn: async ({
+      oldPassword,
+      newPassword,
+    }: {
+      oldPassword: string;
+      newPassword: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateAdminPassword(oldPassword, newPassword);
     },
   });
 }
