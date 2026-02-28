@@ -9,12 +9,7 @@ const CATEGORY_COLORS: Record<
   string,
   { bg: string; text: string; border: string }
 > = {
-  दस्तऐवज: {
-    bg: "oklch(0.95 0.04 210)",
-    text: "oklch(0.35 0.12 210)",
-    border: "oklch(0.80 0.08 210)",
-  },
-  करसेवा: {
+  "कर सेवा": {
     bg: "oklch(0.96 0.05 150)",
     text: "oklch(0.35 0.14 150)",
     border: "oklch(0.78 0.10 150)",
@@ -28,6 +23,26 @@ const CATEGORY_COLORS: Record<
     bg: "oklch(0.96 0.05 60)",
     text: "oklch(0.40 0.14 60)",
     border: "oklch(0.82 0.10 60)",
+  },
+  "नागरिक सेवा": {
+    bg: "oklch(0.95 0.04 210)",
+    text: "oklch(0.35 0.12 210)",
+    border: "oklch(0.80 0.08 210)",
+  },
+  "माहिती अधिकार": {
+    bg: "oklch(0.96 0.04 280)",
+    text: "oklch(0.38 0.14 280)",
+    border: "oklch(0.82 0.08 280)",
+  },
+  "निविदा व भरती": {
+    bg: "oklch(0.96 0.04 43)",
+    text: "oklch(0.42 0.14 43)",
+    border: "oklch(0.82 0.10 43)",
+  },
+  आपत्कालीन: {
+    bg: "oklch(0.96 0.05 20)",
+    text: "oklch(0.40 0.18 20)",
+    border: "oklch(0.82 0.12 20)",
   },
 };
 
@@ -434,27 +449,24 @@ export default function CivicServicesSection() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="font-body text-muted-foreground text-sm"
           >
-            सर्व ऑनलाइन सेवा{" "}
+            सर्व सेवा थेट{" "}
             <a
-              href="https://mahaonline.gov.in"
+              href="https://web.kolhapurcorporation.gov.in"
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold hover:underline"
               style={{ color: "oklch(0.65 0.22 43)" }}
             >
-              mahaonline.gov.in
+              web.kolhapurcorporation.gov.in
             </a>{" "}
-            व{" "}
+            वरून उपलब्ध · KMC हेल्पलाइन:{" "}
             <a
-              href="https://kolhapurcorporation.gov.in"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="tel:02312540291"
               className="font-semibold hover:underline"
               style={{ color: "oklch(0.65 0.22 43)" }}
             >
-              kolhapurcorporation.gov.in
-            </a>{" "}
-            वर उपलब्ध आहेत
+              0231-2540291
+            </a>
           </motion.p>
 
           {/* Last updated - small, right-aligned */}

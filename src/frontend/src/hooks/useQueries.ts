@@ -21,66 +21,145 @@ export interface CivicService {
   buttonLabel: string;
 }
 
-const CIVIC_STORAGE_KEY = "kmc_civic_services_v1";
+const CIVIC_STORAGE_KEY = "kmc_civic_services_v2";
 
 const DEFAULT_CIVIC_SERVICES: CivicService[] = [
+  // ── कर सेवा ──────────────────────────────────────────────────
   {
     id: 1n,
-    icon: "📄",
-    title: "जन्म प्रमाणपत्र अर्ज",
-    description: "मुलाच्या जन्मानंतर ३० दिवसांत ऑनलाइन नोंदणी करा",
-    category: "दस्तऐवज",
-    link: "https://mahaonline.gov.in",
-    buttonLabel: "अर्ज करा",
+    icon: "🏠",
+    title: "मिळकत कर (घरफाळा) भरणा",
+    description:
+      "ऑनलाइन मालमत्ता कर भरा. एप्रिल-जून: ६%, जुलै-सप्टेंबर: ४%, ऑक्टोबर-नोव्हेंबर: २% सवलत मिळेल.",
+    category: "कर सेवा",
+    link: "https://propertytax.kolhapurcorporation.gov.in/KMCOnlinePG/NEWPropSearchOnly.aspx",
+    buttonLabel: "कर भरा",
     isActive: true,
   },
   {
     id: 2n,
-    icon: "📋",
-    title: "मृत्यू प्रमाणपत्र अर्ज",
-    description: "मृत्यूनंतर तातडीने ऑनलाइन नोंदणी करा",
-    category: "दस्तऐवज",
-    link: "https://mahaonline.gov.in",
-    buttonLabel: "अर्ज करा",
+    icon: "🔎",
+    title: "मिळकत कर थकबाकी तपासा",
+    description:
+      "तुमच्या मालमत्तेची थकबाकी ऑनलाइन तपासा आणि वेळेवर भरून सवलतीचा फायदा घ्या.",
+    category: "कर सेवा",
+    link: "https://propertytax.kolhapurcorporation.gov.in/KMCOnlinePG/NEWPropSearchOnly.aspx",
+    buttonLabel: "थकबाकी पहा",
     isActive: true,
   },
+  // ── पाणी सेवा ────────────────────────────────────────────────
   {
     id: 3n,
-    icon: "🏠",
-    title: "मालमत्ता कर भरणा",
-    description: "ऑनलाइन मालमत्ता कर भरा आणि थकबाकी तपासा",
-    category: "करसेवा",
-    link: "https://kolhapurcorporation.gov.in",
-    buttonLabel: "माहिती पहा",
+    icon: "💧",
+    title: "पाणीपट्टी थकबाकी पहा",
+    description:
+      "पाण्याच्या बिलाची थकबाकी ऑनलाइन तपासा व भरा. थकबाकीदार यादीत येण्यापूर्वीच बिल भरा.",
+    category: "पाणी सेवा",
+    link: "https://wts.kolhapurcorporation.gov.in/InternalStatement/Index",
+    buttonLabel: "थकबाकी पहा",
     isActive: true,
   },
   {
     id: 4n,
-    icon: "💧",
-    title: "पाणी कनेक्शन अर्ज",
-    description: "नवीन पाणी कनेक्शनसाठी ऑनलाइन अर्ज करा",
+    icon: "📋",
+    title: "पाणीपट्टी थकबाकीदार यादी",
+    description:
+      "कोल्हापूर महानगरपालिका क्षेत्रातील पाणीपट्टी थकबाकीदारांची अधिकृत यादी पहा.",
     category: "पाणी सेवा",
-    link: "https://kolhapurcorporation.gov.in",
-    buttonLabel: "अर्ज करा",
+    link: "https://wts.kolhapurcorporation.gov.in/InternalStatement/ArrearsList",
+    buttonLabel: "यादी पहा",
     isActive: true,
   },
+  // ── परवाना सेवा ──────────────────────────────────────────────
   {
     id: 5n,
-    icon: "🏗️",
-    title: "बांधकाम परवाना",
-    description: "नवीन बांधकाम किंवा नूतनीकरणासाठी परवाना मिळवा",
+    icon: "📝",
+    title: "परवाना थकबाकी पहा",
+    description:
+      "व्यवसाय परवान्याची थकबाकी ऑनलाइन तपासा आणि दंड टाळण्यासाठी वेळेवर भरा.",
     category: "परवाने",
-    link: "https://kolhapurcorporation.gov.in",
-    buttonLabel: "अर्ज करा",
+    link: "https://services.kolhapurcorporation.gov.in/LicenseknowYourDues",
+    buttonLabel: "थकबाकी पहा",
+    isActive: true,
+  },
+  // ── नागरिक ऑनलाइन सेवा ──────────────────────────────────────
+  {
+    id: 6n,
+    icon: "🌐",
+    title: "नागरी ऑनलाइन सेवा पोर्टल",
+    description:
+      "जन्म/मृत्यू नोंदणी, विवाह नोंदणी, बांधकाम परवाना व इतर सर्व सेवांसाठी KMC पोर्टल.",
+    category: "नागरिक सेवा",
+    link: "https://web.kolhapurcorporation.gov.in/citizen",
+    buttonLabel: "पोर्टल उघडा",
     isActive: true,
   },
   {
-    id: 6n,
-    icon: "🔍",
-    title: "अर्ज स्थिती तपासा",
-    description: "जन्म/मृत्यू नोंदणी अर्जाची सद्यस्थिती ऑनलाइन तपासा",
-    category: "दस्तऐवज",
-    link: "https://mahaonline.gov.in",
+    id: 7n,
+    icon: "📄",
+    title: "जन्म / मृत्यू नोंदणी",
+    description:
+      "जन्म व मृत्यू प्रमाणपत्रासाठी ऑनलाइन अर्ज करा. MahaOnline पोर्टलद्वारे जलद प्रक्रिया.",
+    category: "नागरिक सेवा",
+    link: "https://aaplesarkar.maharashtra.gov.in/",
+    buttonLabel: "अर्ज करा",
+    isActive: true,
+  },
+  // ── माहिती अधिकार ────────────────────────────────────────────
+  {
+    id: 8n,
+    icon: "⚖️",
+    title: "माहितीचा अधिकार (RTI)",
+    description:
+      "RTI अंतर्गत सरकारी माहिती मिळवा. KMC मधील RTI अधिकारी, केसेस व स्वयंप्रकटीकरण पहा.",
+    category: "माहिती अधिकार",
+    link: "https://web.kolhapurcorporation.gov.in/mahitiAdhikarkayda",
+    buttonLabel: "माहिती पहा",
+    isActive: true,
+  },
+  {
+    id: 9n,
+    icon: "📊",
+    title: "RTI अर्ज व प्रकरणे",
+    description:
+      "RTI अंतर्गत अर्ज दाखल करा, जुने प्रकरणे पहा आणि RTI अधिकाऱ्यांची माहिती मिळवा.",
+    category: "माहिती अधिकार",
+    link: "https://web.kolhapurcorporation.gov.in/rtiCases",
+    buttonLabel: "प्रकरणे पहा",
+    isActive: true,
+  },
+  // ── निविदा / भरती ────────────────────────────────────────────
+  {
+    id: 10n,
+    icon: "📢",
+    title: "जाहीर निविदा (E-Tender)",
+    description:
+      "KMC च्या सर्व चालू निविदा पहा. बांधकाम, पुरवठा व सेवा संबंधित निविदांमध्ये सहभागी व्हा.",
+    category: "निविदा व भरती",
+    link: "https://web.kolhapurcorporation.gov.in/etender",
+    buttonLabel: "निविदा पहा",
+    isActive: true,
+  },
+  {
+    id: 11n,
+    icon: "👤",
+    title: "भरती / नोकरी जाहिराती",
+    description:
+      "कोल्हापूर महानगरपालिकेतील रिक्त पदांसाठी जाहिराती पहा आणि ऑनलाइन अर्ज करा.",
+    category: "निविदा व भरती",
+    link: "https://web.kolhapurcorporation.gov.in/recruitmentPage",
+    buttonLabel: "जाहिरात पहा",
+    isActive: true,
+  },
+  // ── आपत्ती व्यवस्थापन ────────────────────────────────────────
+  {
+    id: 12n,
+    icon: "🚨",
+    title: "आपत्ती व्यवस्थापन",
+    description:
+      "अग्निशमन (101), आपत्ती कक्ष (0231-2541188), अग्निशमन विभाग: 0231-2537221. तातडीच्या वेळी संपर्क करा.",
+    category: "आपत्कालीन",
+    link: "https://web.kolhapurcorporation.gov.in/disasterManagement",
     buttonLabel: "माहिती पहा",
     isActive: true,
   },

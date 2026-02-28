@@ -3,6 +3,8 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  ExternalLink,
+  Globe,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
@@ -23,6 +25,44 @@ const tabs: { value: FilterTab; label: string }[] = [
   { value: "past", label: "भूतकाळ" },
   { value: "upcoming", label: "येणाऱ्या" },
 ];
+
+const KMC_BASE = "https://web.kolhapurcorporation.gov.in";
+
+const quickLinks = [
+  {
+    label: "लोकसेवा हक्क अधिनियम",
+    href: `${KMC_BASE}/mahaPublicService`,
+  },
+  {
+    label: "शासन निर्णय / परिपत्रके",
+    href: `${KMC_BASE}/paripatrake`,
+  },
+  {
+    label: "जाहीर सूचना",
+    href: `${KMC_BASE}/circular`,
+  },
+  {
+    label: "KMC संपर्क",
+    href: `${KMC_BASE}/contact`,
+  },
+];
+
+function getKmcLinkForCategory(category: string): string {
+  if (
+    category === "गृहनिर्माण" ||
+    category === "स्वच्छता" ||
+    category === "पाणी व स्वच्छता"
+  ) {
+    if (category === "पाणी व स्वच्छता") {
+      return "https://wts.kolhapurcorporation.gov.in/InternalStatement/Index";
+    }
+    return `${KMC_BASE}/citizen`;
+  }
+  if (category === "कर सेवा" || category === "घरफाळा") {
+    return "https://propertytax.kolhapurcorporation.gov.in/KMCOnlinePG/NEWPropSearchOnly.aspx";
+  }
+  return KMC_BASE;
+}
 
 function getStatusStyle(status: string): {
   bg: string;
@@ -72,6 +112,7 @@ function SchemeCard({ scheme, index }: { scheme: Scheme; index: number }) {
   const statusStyle = getStatusStyle(scheme.status);
   const schemeAny = scheme as unknown as { source?: string };
   const isGovt = (schemeAny.source ?? "manual") === "govt";
+  const kmcLink = getKmcLinkForCategory(scheme.category);
 
   return (
     <motion.div
@@ -189,6 +230,18 @@ function SchemeCard({ scheme, index }: { scheme: Scheme; index: number }) {
             </span>
           </div>
         </div>
+
+        {/* KMC "अधिक माहिती" link */}
+        <a
+          href={kmcLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold font-body mt-1 self-start transition-opacity duration-200 hover:opacity-70"
+          style={{ color: "oklch(0.52 0.20 43)" }}
+        >
+          <ExternalLink size={11} />
+          KMC वर पहा
+        </a>
       </div>
     </motion.div>
   );
@@ -246,7 +299,7 @@ export default function GovernmentSchemesSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-10"
         >
           <div
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-4"
@@ -296,6 +349,93 @@ export default function GovernmentSchemesSection() {
               />
               {isSyncing ? "अपडेट होत आहे..." : "सरकारी अपडेट"}
             </button>
+          </div>
+        </motion.div>
+
+        {/* ── KMC Portal Banner ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.55, delay: 0.1 }}
+          className="mb-8 rounded-2xl overflow-hidden border"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.97 0.025 50), oklch(0.94 0.040 45))",
+            borderColor: "oklch(0.65 0.22 43 / 0.28)",
+            boxShadow: "0 4px 24px oklch(0.65 0.22 43 / 0.12)",
+          }}
+        >
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-5 md:p-6">
+            {/* Icon + text */}
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "oklch(0.65 0.22 43 / 0.18)" }}
+              >
+                <Globe size={22} style={{ color: "oklch(0.45 0.22 43)" }} />
+              </div>
+              <div className="min-w-0">
+                <p
+                  className="font-display text-base font-bold leading-snug"
+                  style={{ color: "oklch(0.30 0.06 43)" }}
+                >
+                  कोल्हापूर महानगरपालिका अधिकृत पोर्टल
+                </p>
+                <p
+                  className="font-body text-xs mt-0.5 leading-relaxed"
+                  style={{ color: "oklch(0.48 0.08 43)" }}
+                >
+                  शासकीय योजनांची अधिकृत व अद्ययावत माहितीसाठी KMC पोर्टल पहा
+                </p>
+              </div>
+            </div>
+
+            {/* CTA buttons */}
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <a
+                href={KMC_BASE}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: "oklch(0.65 0.22 43)",
+                  color: "white",
+                  boxShadow: "0 2px 10px oklch(0.65 0.22 43 / 0.35)",
+                }}
+              >
+                <Globe size={13} />
+                KMC पोर्टल
+              </a>
+              <a
+                href={`${KMC_BASE}/citizen`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: "white",
+                  color: "oklch(0.45 0.22 43)",
+                  border: "1.5px solid oklch(0.65 0.22 43 / 0.40)",
+                }}
+              >
+                <ExternalLink size={13} />
+                नागरिक सेवा
+              </a>
+              <a
+                href={`${KMC_BASE}/paripatrake`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  background: "white",
+                  color: "oklch(0.45 0.22 43)",
+                  border: "1.5px solid oklch(0.65 0.22 43 / 0.40)",
+                }}
+              >
+                <ExternalLink size={13} />
+                शासन निर्णय
+              </a>
+            </div>
           </div>
         </motion.div>
 
@@ -428,6 +568,50 @@ export default function GovernmentSchemesSection() {
           </strong>{" "}
           शासकीय योजना उपलब्ध
         </motion.p>
+
+        {/* ── शासन निर्णय Quick Links Strip ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-12"
+        >
+          <div
+            className="rounded-2xl px-5 py-4"
+            style={{
+              background: "oklch(0.96 0.015 43 / 0.60)",
+              border: "1px solid oklch(0.65 0.22 43 / 0.18)",
+            }}
+          >
+            <p
+              className="font-display text-sm font-bold mb-3 text-center"
+              style={{ color: "oklch(0.45 0.12 43)" }}
+            >
+              📋 शासन निर्णय व महत्त्वाचे दुवे
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {quickLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold font-body transition-all duration-200 hover:scale-105 active:scale-95 whitespace-nowrap"
+                  style={{
+                    background: "white",
+                    color: "oklch(0.40 0.16 43)",
+                    border: "1.5px solid oklch(0.65 0.22 43 / 0.30)",
+                    boxShadow: "0 1px 4px oklch(0.65 0.22 43 / 0.08)",
+                  }}
+                >
+                  <ExternalLink size={12} />
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
