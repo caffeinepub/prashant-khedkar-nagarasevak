@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Fraunces display font (pre-bundled) ─── */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Crimson Pro body font (pre-bundled) ─── */
+@font-face {
+  font-family: "Crimson Pro";
+  src: url("/assets/fonts/CrimsonPro.woff2") format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* ── Brand palette ── */
+    /* Orange: #ff6600  → oklch(0.65 0.22 43) */
+    /* Navy:  #2c3e50  → oklch(0.28 0.04 243) */
+    /* Light bg: #f4f7f6 → oklch(0.97 0.01 155) */
+
+    --background: 0.97 0.008 155;
+    --foreground: 0.18 0.03 240;
+
+    --card: 1 0 0;
+    --card-foreground: 0.18 0.03 240;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0.03 240;
+
+    /* Orange primary */
+    --primary: 0.65 0.22 43;
+    --primary-foreground: 1 0 0;
+
+    /* Navy secondary */
+    --secondary: 0.28 0.04 243;
+    --secondary-foreground: 0.97 0 0;
+
+    --muted: 0.93 0.01 155;
+    --muted-foreground: 0.48 0.02 240;
+
+    --accent: 0.65 0.22 43;
+    --accent-foreground: 1 0 0;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.88 0.01 240;
+    --input: 0.88 0.01 240;
+    --ring: 0.65 0.22 43;
+
+    --chart-1: 0.65 0.22 43;
+    --chart-2: 0.28 0.04 243;
+    --chart-3: 0.55 0.15 150;
+    --chart-4: 0.72 0.18 60;
+    --chart-5: 0.40 0.10 240;
+
+    --sidebar: 0.28 0.04 243;
+    --sidebar-foreground: 0.97 0 0;
+    --sidebar-primary: 0.65 0.22 43;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.35 0.05 243;
+    --sidebar-accent-foreground: 0.97 0 0;
+    --sidebar-border: 0.35 0.05 243;
+    --sidebar-ring: 0.65 0.22 43;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: "Fraunces", Georgia, serif;
+  }
+
+  .font-body {
+    font-family: "Crimson Pro", Georgia, serif;
+  }
+
+  /* Orange gradient for decorative elements */
+  .gradient-orange {
+    background: linear-gradient(135deg, oklch(0.65 0.22 43), oklch(0.55 0.20 30));
+  }
+
+  /* Navy gradient */
+  .gradient-navy {
+    background: linear-gradient(135deg, oklch(0.28 0.04 243), oklch(0.20 0.05 250));
+  }
+
+  /* Hero overlay */
+  .hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.65) 60%,
+      rgba(44, 62, 80, 0.85) 100%
+    );
+  }
+
+  /* Section divider line */
+  .section-divider {
+    width: 60px;
+    height: 4px;
+    background: oklch(0.65 0.22 43);
+    border-radius: 2px;
+    margin: 0.75rem auto 1.5rem;
+  }
+
+  /* Card hover */
+  .card-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(44, 62, 80, 0.15);
+  }
+}
