@@ -54,7 +54,7 @@ export default function HeroSection() {
         style={{ height: "90%", maxHeight: "700px" }}
       >
         <img
-          src="/assets/uploads/IMG_20260228_195714-1.jpg"
+          src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
           alt="नगरसेवक भैय्या खेडकर"
           className="h-full w-auto object-cover object-top"
           style={{

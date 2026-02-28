@@ -68,7 +68,7 @@ export default function AboutSection() {
               />
               <div className="relative w-72 md:w-80 h-80 md:h-96 rounded-2xl overflow-hidden shadow-xl">
                 <img
-                  src="/assets/uploads/IMG_20260228_195714-1.jpg"
+                  src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
                   alt="नगरसेवक प्रशांत उर्फ भैय्या खेडकर"
                   className="w-full h-full object-cover"
                 />
