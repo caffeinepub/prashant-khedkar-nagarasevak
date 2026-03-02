@@ -1,10 +1,11 @@
 import { Award, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
+import { useSitePhoto } from "../hooks/useSitePhoto";
 
 const stats = [
   {
     icon: Award,
-    value: "१० वर्षे",
+    value: "१५ वर्षे",
     label: "सेवा",
     desc: "अविरत जनसेवा",
   },
@@ -23,6 +24,8 @@ const stats = [
 ];
 
 export default function AboutSection() {
+  const { photoSrc } = useSitePhoto("about");
+
   return (
     <section id="about" className="py-20 md:py-28 bg-white">
       <div className="container mx-auto px-4 lg:px-8">
@@ -68,10 +71,23 @@ export default function AboutSection() {
               />
               <div className="relative w-72 md:w-80 h-80 md:h-96 rounded-2xl overflow-hidden shadow-xl">
                 <img
-                  src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
+                  src={photoSrc}
                   alt="नगरसेवक प्रशांत उर्फ भैय्या खेडकर"
                   className="w-full h-full object-cover object-top"
                   style={{ display: "block" }}
+                  onError={(e) => {
+                    const el = e.currentTarget as HTMLImageElement;
+                    el.style.display = "none";
+                    const parent = el.parentElement;
+                    if (parent) {
+                      parent.style.background = "oklch(0.65 0.22 43 / 0.12)";
+                      parent.style.display = "flex";
+                      parent.style.alignItems = "center";
+                      parent.style.justifyContent = "center";
+                      parent.innerHTML =
+                        '<div style="text-align:center;padding:1rem"><div style="font-size:5rem;line-height:1">👤</div><p style="color:oklch(0.52 0.20 43);font-weight:bold;margin-top:0.5rem;font-size:0.875rem">भैय्या खेडकर</p></div>';
+                    }
+                  }}
                 />
               </div>
               {/* Floating badge */}
@@ -106,7 +122,7 @@ export default function AboutSection() {
               className="text-lg leading-relaxed mb-4"
               style={{ color: "oklch(0.28 0.04 243)" }}
             >
-              गेल्या दहा वर्षांपासून प्रभाग क्र. ८ च्या विकासासाठी अहोरात्र झटत असलेले
+              गेल्या पंधरा वर्षांपासून प्रभाग क्र. ८ च्या विकासासाठी अहोरात्र झटत असलेले
               नगरसेवक प्रशांत उर्फ भैय्या खेडकर हे जनतेचे खऱ्या अर्थाने प्रतिनिधी आहेत.
             </p>
             <p
@@ -126,7 +142,7 @@ export default function AboutSection() {
 
             {/* Quick info pills */}
             <div className="flex flex-wrap gap-3">
-              {["कोल्हापूर महानगरपालिका सदस्य", "प्रभाग क्र. ८", "१० वर्षे सेवा"].map(
+              {["कोल्हापूर महानगरपालिका सदस्य", "प्रभाग क्र. ८", "१५ वर्षे सेवा"].map(
                 (tag) => (
                   <span
                     key={tag}

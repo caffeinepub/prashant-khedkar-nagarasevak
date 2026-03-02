@@ -1,10 +1,9 @@
-import Array "mo:core/Array";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Nat "mo:core/Nat";
+import Migration "migration";
 
-import {migration} "Migration";
-(with migration)
+(with migration = Migration.run)
 actor {
   type GrievanceSubmission = {
     id : Nat;
@@ -67,7 +66,15 @@ actor {
     isActive : Bool;
   };
 
-  stable var adminPassword : Text = "#BK1234";
+  type AppNotification = {
+    id : Nat;
+    title : Text;
+    body : Text;
+    timestamp : Int;
+  };
+
+  let adminPassword : Text = "#BK1234";
+
   stable var grievanceCounter : Nat = 0;
   stable var galleryPhotoCounter : Nat = 0;
   stable var projectCounter : Nat = 3;
@@ -75,26 +82,34 @@ actor {
   stable var ratingCounter : Nat = 0;
   stable var teamMemberCounter : Nat = 1;
   stable var civilServiceCounter : Nat = 12;
+  stable var notificationCounter : Nat = 0;
+
+  stable var lastReadGrievanceCount : Nat = 0;
+
+  stable var navbarPhotoData : Text = "";
+  stable var heroPhotoData : Text = "";
+  stable var aboutPhotoData : Text = "";
 
   stable var grievances : [GrievanceSubmission] = [];
   stable var galleryPhotos : [GalleryPhoto] = [];
   stable var projectRatings : [ProjectRating] = [];
+  stable var notifications : [AppNotification] = [];
 
   stable var schemes : [Scheme] = [
-    { id = 0; title = "प्रधानमंत्री आवास योजना (शहरी)"; description = "गरीबांना शहरी भागात घर मिळवण्यास मदत करणारी योजना."; status = "active"; category = "गृहनिर्माण"; benefit = "घरांसाठी सब्सिडी"; eligibility = "नियमित गरजूंनाच"; },
-    { id = 1; title = "स्वच्छ भारत मिशन (शहरी)"; description = "शहरांमध्ये स्वच्छता आणि परिसर व्यवस्था सुधारण्याची योजना."; status = "active"; category = "स्वच्छता"; benefit = "स्वच्छता विकास निधी"; eligibility = "सर्व नागरीकांसाठी"; },
-    { id = 2; title = "राजीव गांधी घरकुल योजना"; description = "विकासकांच्या सहाय्याने घरकुल बांधण्याची योजना."; status = "past"; category = "गृहनिर्माण"; benefit = "घर बांधणी अनुदान"; eligibility = "ग्रामीण गरजूंसाठी"; },
-    { id = 3; title = "अमृत २.० - पाणीपुरवठा व सांडपाणी"; description = "शहरी पाणीपुरवठा सुधारण्यासाठी राष्ट्रीय योजना."; status = "upcoming"; category = "पाणी व स्वच्छता"; benefit = "पाणीपुरवठा सुविधा"; eligibility = "सर्व गुणवत्ता आवश्यक"; },
+    { id = 0; title = "प्रधानमंत्री आवास योजना (शहरी)"; description = "गरीबांना शहरी भागात घर मिळवण्यास मदत करणारी योजना."; status = "active"; category = "गृहनिर्माण"; benefit = "घरांसाठी सब्सिडी"; eligibility = "नियमित गरजूंनाच" },
+    { id = 1; title = "स्वच्छ भारत मिशन (शहरी)"; description = "शहरांमध्ये स्वच्छता आणि परिसर व्यवस्था सुधारण्याची योजना."; status = "active"; category = "स्वच्छता"; benefit = "स्वच्छता विकास निधी"; eligibility = "सर्व नागरीकांसाठी" },
+    { id = 2; title = "राजीव गांधी घरकुल योजना"; description = "विकासकांच्या सहाय्याने घरकुल बांधण्याची योजना."; status = "past"; category = "गृहनिर्माण"; benefit = "घर बांधणी अनुदान"; eligibility = "ग्रामीण गरजूंसाठी" },
+    { id = 3; title = "अमृत २.० - पाणीपुरवठा व सांडपाणी"; description = "शहरी पाणीपुरवठा सुधारण्यासाठी राष्ट्रीय योजना."; status = "upcoming"; category = "पाणी व स्वच्छता"; benefit = "पाणीपुरवठा सुविधा"; eligibility = "सर्व गुणवत्ता आवश्यक" },
   ];
 
   stable var projects : [Project] = [
-    { id = 0; title = "पार्क नूतनीकरण"; description = "केंद्रिय बागेला नवीन खेळांची साधने बसविणे."; status = "पूर्ण झाले"; category = "विकासकामे"; },
-    { id = 1; title = "रोड दुरुस्ती"; description = "मुख्य मार्गांची खड्डे बुजविणे आणि पुनःनिर्माण करणे."; status = "चालू"; category = "विकासकामे"; },
-    { id = 2; title = "समुदाय केंद्र कार्यक्रम"; description = "शैक्षणिक आणि मनोरंजक कार्यक्रम सुरू करणे."; status = "योजना"; category = "समाजकल्याण"; },
+    { id = 0; title = "पार्क नूतनीकरण"; description = "केंद्रिय बागेला नवीन खेळांची साधने बसविणे."; status = "पूर्ण झाले"; category = "विकासकामे" },
+    { id = 1; title = "रोड दुरुस्ती"; description = "मुख्य मार्गांची खड्डे बुजविणे आणि पुनःनिर्माण करणे."; status = "चालू"; category = "विकासकामे" },
+    { id = 2; title = "समुदाय केंद्र कार्यक्रम"; description = "शैक्षणिक आणि मनोरंजक कार्यक्रम सुरू करणे."; status = "योजना"; category = "समाजकल्याण" },
   ];
 
   stable var teamMembers : [TeamMember] = [
-    { id = 0; name = "प्रशांत उर्फ भैय्या खेडकर"; role = "नगरसेवक, प्रभाग क्र. २"; photoUrl = "/assets/uploads/IMG_20260228_195714-1-1.jpg"; mobile = "+91 97641 51234"; description = "कोल्हापूर महानगरपालिका प्रभाग क्र. २ चे नगरसेवक"; },
+    { id = 0; name = "प्रशांत उर्फ भैय्या खेडकर"; role = "नगरसेवक, प्रभाग क्र. २"; photoUrl = "/assets/uploads/IMG_20260228_195714-1-1.jpg"; mobile = "+91 97641 51234"; description = "कोल्हापूर महानगरपालिका प्रभाग क्र. २ चे नगरसेवक" },
   ];
 
   stable var civilServices : [CivilService] = [
@@ -154,10 +169,6 @@ actor {
 
   public func adminLogin(password : Text) : async Bool {
     Text.equal(password, adminPassword);
-  };
-
-  public func updateAdminPassword(oldPassword : Text, newPassword : Text) : async Bool {
-    if (Text.equal(oldPassword, adminPassword)) { adminPassword := newPassword; true } else { false };
   };
 
   public func addScheme(title : Text, description : Text, category : Text, status : Text, benefit : Text, eligibility : Text) : async Nat {
@@ -223,7 +234,7 @@ actor {
 
   public func toggleCivilService(id : Nat, isActive : Bool) : async Bool {
     civilServices := civilServices.map(func(s : CivilService) : CivilService {
-      if (s.id == id) { { id = s.id; title = s.title; description = s.description; category = s.category; url = s.url; isActive = isActive } } else { s }
+      if (s.id == id) { { id = s.id; title = s.title; description = s.description; category = s.category; url = s.url; isActive = isActive } } else { s };
     });
     true;
   };
@@ -234,4 +245,47 @@ actor {
   };
 
   public query func getAllCivilServices() : async [CivilService] { civilServices };
+
+  public query func getSitePhoto(photoKey : Text) : async Text {
+    if (Text.equal(photoKey, "navbar")) { return navbarPhotoData } else if (Text.equal(photoKey, "hero")) { return heroPhotoData } else if (Text.equal(photoKey, "about")) { return aboutPhotoData } else { return "" };
+  };
+
+  public func setSitePhoto(photoKey : Text, data : Text) : async Bool {
+    if (Text.equal(photoKey, "navbar")) {
+      navbarPhotoData := data;
+      true;
+    } else if (Text.equal(photoKey, "hero")) {
+      heroPhotoData := data;
+      true;
+    } else if (Text.equal(photoKey, "about")) {
+      aboutPhotoData := data;
+      true;
+    } else {
+      false;
+    };
+  };
+
+  public func addNotification(title : Text, body : Text) : async Nat {
+    let newNotification : AppNotification = { id = notificationCounter; title; body; timestamp = Time.now() };
+    notifications := [newNotification].concat(notifications);
+    let currentId = notificationCounter;
+    notificationCounter += 1;
+    currentId;
+  };
+
+  public query func getAllNotifications() : async [AppNotification] { notifications };
+
+  public query func getUnreadNotificationCount() : async Nat { notifications.size() };
+
+  public func markAllNotificationsRead() : async Bool {
+    notifications := [];
+    true;
+  };
+
+  public query func getUnreadGrievanceCount() : async Nat { grievances.size() - lastReadGrievanceCount };
+
+  public func markGrievancesRead() : async Bool {
+    lastReadGrievanceCount := grievances.size();
+    true;
+  };
 };

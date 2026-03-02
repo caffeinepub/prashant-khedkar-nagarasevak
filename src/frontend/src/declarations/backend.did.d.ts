@@ -10,6 +10,20 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AppNotification {
+  'id' : bigint,
+  'title' : string,
+  'body' : string,
+  'timestamp' : bigint,
+}
+export interface CivilService {
+  'id' : bigint,
+  'url' : string,
+  'title' : string,
+  'description' : string,
+  'isActive' : boolean,
+  'category' : string,
+}
 export interface GalleryPhoto {
   'id' : bigint,
   'sub' : string,
@@ -48,30 +62,55 @@ export interface Scheme {
   'category' : string,
   'benefit' : string,
 }
+export interface TeamMember {
+  'id' : bigint,
+  'name' : string,
+  'role' : string,
+  'description' : string,
+  'photoUrl' : string,
+  'mobile' : string,
+}
 export interface _SERVICE {
+  'addCivilService' : ActorMethod<[string, string, string, string], bigint>,
   'addGalleryPhoto' : ActorMethod<[string, string, string], bigint>,
+  'addNotification' : ActorMethod<[string, string], bigint>,
   'addProject' : ActorMethod<[string, string, string, string], bigint>,
   'addScheme' : ActorMethod<
     [string, string, string, string, string, string],
     bigint
   >,
+  'addTeamMember' : ActorMethod<
+    [string, string, string, string, string],
+    bigint
+  >,
   'adminLogin' : ActorMethod<[string], boolean>,
+  'deleteCivilService' : ActorMethod<[bigint], boolean>,
   'deleteGalleryPhoto' : ActorMethod<[bigint], boolean>,
   'deleteProject' : ActorMethod<[bigint], boolean>,
   'deleteScheme' : ActorMethod<[bigint], boolean>,
+  'deleteTeamMember' : ActorMethod<[bigint], boolean>,
+  'getAllCivilServices' : ActorMethod<[], Array<CivilService>>,
   'getAllGalleryPhotos' : ActorMethod<[], Array<GalleryPhoto>>,
   'getAllGrievances' : ActorMethod<[], Array<GrievanceSubmission>>,
+  'getAllNotifications' : ActorMethod<[], Array<AppNotification>>,
   'getAllProjects' : ActorMethod<[], Array<Project>>,
   'getAllRatings' : ActorMethod<[], Array<ProjectRating>>,
   'getAllSchemes' : ActorMethod<[], Array<Scheme>>,
+  'getAllTeamMembers' : ActorMethod<[], Array<TeamMember>>,
   'getAverageRating' : ActorMethod<
     [bigint],
     { 'totalRatings' : bigint, 'averageRating' : bigint }
   >,
   'getRatingsForProject' : ActorMethod<[bigint], Array<ProjectRating>>,
+  'getSitePhoto' : ActorMethod<[string], string>,
+  'getUnreadGrievanceCount' : ActorMethod<[], bigint>,
+  'getUnreadNotificationCount' : ActorMethod<[], bigint>,
+  'markAllNotificationsRead' : ActorMethod<[], boolean>,
+  'markGrievancesRead' : ActorMethod<[], boolean>,
+  'setSitePhoto' : ActorMethod<[string, string], boolean>,
   'submitGrievance' : ActorMethod<[string, string, string], bigint>,
   'submitRating' : ActorMethod<[bigint, bigint, string, string], bigint>,
-  'updateAdminPassword' : ActorMethod<[string, string], boolean>,
+  'toggleCivilService' : ActorMethod<[bigint, boolean], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

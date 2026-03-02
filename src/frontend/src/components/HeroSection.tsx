@@ -1,10 +1,131 @@
-import { ChevronDown, Share2 } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
+import { ChevronDown, Phone, Share2, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useRef, useState } from "react";
+import { useSitePhoto } from "../hooks/useSitePhoto";
 import ShareModal from "./ShareModal";
+
+// ─── Call Modal ────────────────────────────────────────────────────────────────
+
+function CallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/40"
+            onClick={onClose}
+          />
+          {/* Modal */}
+          <motion.div
+            ref={ref}
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[130] w-80 rounded-3xl shadow-2xl overflow-hidden"
+            style={{ background: "white" }}
+            data-ocid="hero.call.modal"
+          >
+            {/* Header */}
+            <div
+              className="flex items-center justify-between px-5 py-4 border-b"
+              style={{ borderColor: "oklch(0.28 0.04 243 / 0.08)" }}
+            >
+              <p
+                className="font-display font-bold text-base"
+                style={{ color: "oklch(0.28 0.04 243)" }}
+              >
+                📞 थेट कॉल करा
+              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                data-ocid="hero.call.close_button"
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-muted"
+                style={{ color: "oklch(0.50 0.02 243)" }}
+                aria-label="बंद करा"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Buttons */}
+            <div className="p-3 space-y-2">
+              <a
+                href="tel:+919764151234"
+                data-ocid="hero.call.button.1"
+                className="flex items-center justify-between w-full px-4 py-4 rounded-2xl transition-colors group"
+                style={{ background: "oklch(0.65 0.22 43 / 0.08)" }}
+                onClick={onClose}
+              >
+                <div>
+                  <p
+                    className="font-display font-bold text-base"
+                    style={{ color: "oklch(0.28 0.04 243)" }}
+                  >
+                    नगरसेवक
+                  </p>
+                  <p
+                    className="font-body text-sm mt-0.5"
+                    style={{ color: "oklch(0.52 0.20 43)" }}
+                  >
+                    +91 97641 51234
+                  </p>
+                </div>
+                <span
+                  className="w-11 h-11 rounded-full flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  style={{ background: "oklch(0.65 0.22 43)" }}
+                >
+                  <Phone size={20} className="text-white" />
+                </span>
+              </a>
+
+              <a
+                href="tel:+919529883084"
+                data-ocid="hero.call.button.2"
+                className="flex items-center justify-between w-full px-4 py-4 rounded-2xl transition-colors group"
+                style={{ background: "oklch(0.28 0.04 243 / 0.07)" }}
+                onClick={onClose}
+              >
+                <div>
+                  <p
+                    className="font-display font-bold text-base"
+                    style={{ color: "oklch(0.28 0.04 243)" }}
+                  >
+                    कार्यालय
+                  </p>
+                  <p
+                    className="font-body text-sm mt-0.5"
+                    style={{ color: "oklch(0.52 0.20 43)" }}
+                  >
+                    +91 95298 83084
+                  </p>
+                </div>
+                <span
+                  className="w-11 h-11 rounded-full flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  style={{ background: "oklch(0.28 0.04 243)" }}
+                >
+                  <Phone size={20} className="text-white" />
+                </span>
+              </a>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function HeroSection() {
   const [shareOpen, setShareOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
+  const { photoSrc } = useSitePhoto("hero");
 
   const handleContactClick = () => {
     const el = document.getElementById("contact");
@@ -54,13 +175,16 @@ export default function HeroSection() {
         style={{ height: "90%", maxHeight: "700px" }}
       >
         <img
-          src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
+          src={photoSrc}
           alt="नगरसेवक भैय्या खेडकर"
           className="h-full w-auto object-cover object-top"
           style={{
             WebkitMaskImage:
               "linear-gradient(to left, black 55%, transparent 100%)",
             maskImage: "linear-gradient(to left, black 55%, transparent 100%)",
+          }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
       </motion.div>
@@ -80,9 +204,19 @@ export default function HeroSection() {
               style={{ borderColor: "oklch(0.65 0.22 43)" }}
             >
               <img
-                src="/assets/uploads/IMG_20260228_195714-1-1.jpg"
+                src={photoSrc}
                 alt="नगरसेवक भैय्या खेडकर"
                 className="w-full h-full object-cover object-top"
+                onError={(e) => {
+                  const el = e.currentTarget as HTMLImageElement;
+                  el.style.display = "none";
+                  const parent = el.parentElement;
+                  if (parent) {
+                    parent.style.background = "oklch(0.65 0.22 43 / 0.40)";
+                    parent.innerHTML =
+                      '<span style="font-size:2.5rem;display:flex;align-items:center;justify-content:center;height:100%;">🧑‍💼</span>';
+                  }
+                }}
               />
             </div>
             <div
@@ -148,16 +282,17 @@ export default function HeroSection() {
           प्रभाग क्र. ८ च्या विकासासाठी अहोरात्र झटणारे समर्पित नगरसेवक
         </motion.p>
 
-        {/* CTA Button */}
+        {/* CTA Buttons */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.0, duration: 0.4 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap"
         >
           <button
             type="button"
             onClick={handleContactClick}
+            data-ocid="hero.primary_button"
             className="group px-8 py-4 rounded-full font-display font-bold text-lg text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
             style={{ background: "oklch(0.65 0.22 43)" }}
           >
@@ -173,13 +308,31 @@ export default function HeroSection() {
                 .getElementById("about")
                 ?.scrollIntoView({ behavior: "smooth" });
             }}
+            data-ocid="hero.secondary_button"
             className="px-8 py-4 rounded-full font-display font-bold text-lg text-white border-2 border-white/60 transition-all duration-200 hover:bg-white/10 hover:border-white"
           >
             अधिक जाणून घ्या
           </button>
+
+          {/* Call button */}
+          <button
+            type="button"
+            onClick={() => setCallOpen(true)}
+            data-ocid="hero.call.open_modal_button"
+            className="flex items-center gap-2 px-8 py-4 rounded-full font-display font-bold text-lg text-white border-2 transition-all duration-200 hover:scale-105"
+            style={{
+              borderColor: "oklch(0.72 0.22 43)",
+              background: "oklch(0.65 0.22 43 / 0.30)",
+            }}
+          >
+            <Phone size={20} />
+            कॉल करा
+          </button>
+
           <button
             type="button"
             onClick={handleShare}
+            data-ocid="hero.share.button"
             className="flex items-center gap-2 px-8 py-4 rounded-full font-display font-bold text-lg text-white border-2 border-white/60 transition-all duration-200 hover:bg-white/10 hover:border-white"
           >
             <Share2 size={20} />
@@ -209,6 +362,7 @@ export default function HeroSection() {
       </motion.button>
 
       <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
+      <CallModal open={callOpen} onClose={() => setCallOpen(false)} />
     </section>
   );
 }

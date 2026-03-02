@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  AppNotification,
   GalleryPhoto,
   GrievanceSubmission,
   Project,
@@ -641,22 +642,6 @@ export function useAdminLogin() {
   });
 }
 
-export function useUpdateAdminPassword() {
-  const { actor } = useActor();
-  return useMutation({
-    mutationFn: async ({
-      oldPassword,
-      newPassword,
-    }: {
-      oldPassword: string;
-      newPassword: string;
-    }) => {
-      if (!actor) throw new Error("Actor not available");
-      return actor.updateAdminPassword(oldPassword, newPassword);
-    },
-  });
-}
-
 export function useSubmitGrievance() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -741,6 +726,132 @@ export function useSubmitRating() {
         queryKey: ["ratingsForProject", String(variables.projectId)],
       });
       queryClient.invalidateQueries({ queryKey: ["allRatings"] });
+    },
+  });
+}
+
+// ─── Site Photos ──────────────────────────────────────────────────────────────
+
+export function useGetSitePhoto(photoKey: string) {
+  const { actor, isFetching } = useActor();
+  return useQuery<string>({
+    queryKey: ["sitePhoto", photoKey],
+    queryFn: async () => {
+      if (!actor) return "";
+      return actor.getSitePhoto(photoKey);
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+export function useSetSitePhoto() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      photoKey,
+      data,
+    }: {
+      photoKey: string;
+      data: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.setSitePhoto(photoKey, data);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["sitePhoto", variables.photoKey],
+      });
+    },
+  });
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export function useAddNotification() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      title,
+      body,
+    }: {
+      title: string;
+      body: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.addNotification(title, body);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
+    },
+  });
+}
+
+export function useGetAllNotifications() {
+  const { actor, isFetching } = useActor();
+  return useQuery<AppNotification[]>({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllNotifications();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetUnreadNotificationCount() {
+  const { actor, isFetching } = useActor();
+  return useQuery<bigint>({
+    queryKey: ["unreadNotificationCount"],
+    queryFn: async () => {
+      if (!actor) return 0n;
+      return actor.getUnreadNotificationCount();
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 60000,
+  });
+}
+
+export function useMarkAllNotificationsRead() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.markAllNotificationsRead();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}
+
+export function useGetUnreadGrievanceCount() {
+  const { actor, isFetching } = useActor();
+  return useQuery<bigint>({
+    queryKey: ["unreadGrievanceCount"],
+    queryFn: async () => {
+      if (!actor) return 0n;
+      return actor.getUnreadGrievanceCount();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useMarkGrievancesRead() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.markGrievancesRead();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["unreadGrievanceCount"] });
     },
   });
 }

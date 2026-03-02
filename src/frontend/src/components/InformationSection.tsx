@@ -93,31 +93,45 @@ const importantContacts = [
 const documents = [
   {
     id: 1,
-    title: "मालमत्ता कर अर्ज नमुना",
-    description: "मालमत्ता कर भरण्यासाठी अर्ज नमुना",
-    link: "https://kolhapurcorporation.gov.in",
+    title: "मालमत्ता कर ऑनलाइन भरणा",
+    description: "KMC पोर्टलवर थेट मिळकत कर (घरफाळा) ऑनलाइन भरा",
+    link: "https://propertytax.kolhapurcorporation.gov.in/KMCOnlinePG/NEWPropSearchOnly.aspx",
     category: "करसेवा",
   },
   {
     id: 2,
-    title: "जन्म नोंदणी अर्ज",
-    description: "जन्म प्रमाणपत्रासाठी अर्ज नमुना",
-    link: "https://mahaonline.gov.in",
+    title: "जन्म / मृत्यू नोंदणी अर्ज",
+    description: "जन्म व मृत्यू प्रमाणपत्रासाठी आपले सरकार पोर्टलवर अर्ज करा",
+    link: "https://aaplesarkar.maharashtra.gov.in/",
     category: "दस्तऐवज",
   },
   {
     id: 3,
-    title: "बांधकाम परवाना अर्ज",
-    description: "नवीन बांधकामासाठी परवाना अर्ज",
-    link: "https://kolhapurcorporation.gov.in",
+    title: "बांधकाम परवाना / नागरी सेवा",
+    description: "बांधकाम परवाना, विवाह नोंदणी व इतर सेवा KMC नागरिक पोर्टलवर",
+    link: "https://web.kolhapurcorporation.gov.in/citizen",
     category: "परवाने",
   },
   {
     id: 4,
-    title: "रहिवासी दाखला अर्ज",
-    description: "रहिवासी दाखल्यासाठी अर्ज नमुना",
+    title: "रहिवासी / जात दाखला",
+    description: "रहिवासी व जात प्रमाणपत्रासाठी महाऑनलाइन पोर्टलवर अर्ज करा",
     link: "https://mahaonline.gov.in",
     category: "दस्तऐवज",
+  },
+  {
+    id: 5,
+    title: "परवाना थकबाकी तपासा",
+    description: "व्यवसाय परवान्याची थकबाकी ऑनलाइन तपासा व वेळेवर भरा",
+    link: "https://services.kolhapurcorporation.gov.in/LicenseknowYourDues",
+    category: "परवाने",
+  },
+  {
+    id: 6,
+    title: "RTI माहिती अधिकार अर्ज",
+    description: "KMC मधील RTI अधिकारी, केसेस व माहिती अधिकार अर्ज करा",
+    link: "https://web.kolhapurcorporation.gov.in/mahitiAdhikarkayda",
+    category: "माहिती अधिकार",
   },
 ];
 
@@ -159,6 +173,10 @@ function getCategoryStyle(category: string): { bg: string; color: string } {
     परवाने: {
       bg: "oklch(0.55 0.18 260 / 0.10)",
       color: "oklch(0.40 0.16 260)",
+    },
+    "माहिती अधिकार": {
+      bg: "oklch(0.60 0.18 150 / 0.12)",
+      color: "oklch(0.38 0.16 150)",
     },
   };
   return (

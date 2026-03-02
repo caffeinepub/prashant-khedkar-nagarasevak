@@ -114,9 +114,11 @@ export default function ContactSection() {
                     कार्यालय पत्ता
                   </p>
                   <p className="font-body text-muted-foreground text-base">
-                    प्रशांत खेडकर कार्यालय, प्रभाग क्र. ८,
+                    611 ए वॉर्ड खेडकर गल्ली,
                     <br />
-                    कोल्हापूर - ४१६०१२
+                    बोर तालीम चौक,
+                    <br />
+                    लक्षतीर्थ वसाहत, कोल्हापूर
                   </p>
                 </div>
               </div>

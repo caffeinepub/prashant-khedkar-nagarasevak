@@ -8,6 +8,14 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const CivilService = IDL.Record({
+  'id' : IDL.Nat,
+  'url' : IDL.Text,
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'isActive' : IDL.Bool,
+  'category' : IDL.Text,
+});
 export const GalleryPhoto = IDL.Record({
   'id' : IDL.Nat,
   'sub' : IDL.Text,
@@ -21,6 +29,12 @@ export const GrievanceSubmission = IDL.Record({
   'message' : IDL.Text,
   'timestamp' : IDL.Int,
   'mobile' : IDL.Text,
+});
+export const AppNotification = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'body' : IDL.Text,
+  'timestamp' : IDL.Int,
 });
 export const Project = IDL.Record({
   'id' : IDL.Nat,
@@ -46,9 +60,23 @@ export const Scheme = IDL.Record({
   'category' : IDL.Text,
   'benefit' : IDL.Text,
 });
+export const TeamMember = IDL.Record({
+  'id' : IDL.Nat,
+  'name' : IDL.Text,
+  'role' : IDL.Text,
+  'description' : IDL.Text,
+  'photoUrl' : IDL.Text,
+  'mobile' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
+  'addCivilService' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+  'addNotification' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
   'addProject' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Nat],
@@ -59,15 +87,25 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'addTeamMember' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
   'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
+  'deleteCivilService' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'deleteScheme' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'deleteTeamMember' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'getAllCivilServices' : IDL.Func([], [IDL.Vec(CivilService)], ['query']),
   'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
   'getAllGrievances' : IDL.Func([], [IDL.Vec(GrievanceSubmission)], ['query']),
+  'getAllNotifications' : IDL.Func([], [IDL.Vec(AppNotification)], ['query']),
   'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
   'getAllRatings' : IDL.Func([], [IDL.Vec(ProjectRating)], ['query']),
   'getAllSchemes' : IDL.Func([], [IDL.Vec(Scheme)], ['query']),
+  'getAllTeamMembers' : IDL.Func([], [IDL.Vec(TeamMember)], ['query']),
   'getAverageRating' : IDL.Func(
       [IDL.Nat],
       [IDL.Record({ 'totalRatings' : IDL.Nat, 'averageRating' : IDL.Nat })],
@@ -78,18 +116,32 @@ export const idlService = IDL.Service({
       [IDL.Vec(ProjectRating)],
       ['query'],
     ),
+  'getSitePhoto' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
+  'getUnreadGrievanceCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getUnreadNotificationCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'markAllNotificationsRead' : IDL.Func([], [IDL.Bool], []),
+  'markGrievancesRead' : IDL.Func([], [IDL.Bool], []),
+  'setSitePhoto' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
   'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
   'submitRating' : IDL.Func(
       [IDL.Nat, IDL.Nat, IDL.Text, IDL.Text],
       [IDL.Nat],
       [],
     ),
-  'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+  'toggleCivilService' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const CivilService = IDL.Record({
+    'id' : IDL.Nat,
+    'url' : IDL.Text,
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'isActive' : IDL.Bool,
+    'category' : IDL.Text,
+  });
   const GalleryPhoto = IDL.Record({
     'id' : IDL.Nat,
     'sub' : IDL.Text,
@@ -103,6 +155,12 @@ export const idlFactory = ({ IDL }) => {
     'message' : IDL.Text,
     'timestamp' : IDL.Int,
     'mobile' : IDL.Text,
+  });
+  const AppNotification = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'body' : IDL.Text,
+    'timestamp' : IDL.Int,
   });
   const Project = IDL.Record({
     'id' : IDL.Nat,
@@ -128,9 +186,23 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'benefit' : IDL.Text,
   });
+  const TeamMember = IDL.Record({
+    'id' : IDL.Nat,
+    'name' : IDL.Text,
+    'role' : IDL.Text,
+    'description' : IDL.Text,
+    'photoUrl' : IDL.Text,
+    'mobile' : IDL.Text,
+  });
   
   return IDL.Service({
+    'addCivilService' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'addGalleryPhoto' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
+    'addNotification' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
     'addProject' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Nat],
@@ -141,19 +213,29 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'addTeamMember' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
     'adminLogin' : IDL.Func([IDL.Text], [IDL.Bool], []),
+    'deleteCivilService' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deleteGalleryPhoto' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deleteProject' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'deleteScheme' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'deleteTeamMember' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'getAllCivilServices' : IDL.Func([], [IDL.Vec(CivilService)], ['query']),
     'getAllGalleryPhotos' : IDL.Func([], [IDL.Vec(GalleryPhoto)], ['query']),
     'getAllGrievances' : IDL.Func(
         [],
         [IDL.Vec(GrievanceSubmission)],
         ['query'],
       ),
+    'getAllNotifications' : IDL.Func([], [IDL.Vec(AppNotification)], ['query']),
     'getAllProjects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
     'getAllRatings' : IDL.Func([], [IDL.Vec(ProjectRating)], ['query']),
     'getAllSchemes' : IDL.Func([], [IDL.Vec(Scheme)], ['query']),
+    'getAllTeamMembers' : IDL.Func([], [IDL.Vec(TeamMember)], ['query']),
     'getAverageRating' : IDL.Func(
         [IDL.Nat],
         [IDL.Record({ 'totalRatings' : IDL.Nat, 'averageRating' : IDL.Nat })],
@@ -164,13 +246,19 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ProjectRating)],
         ['query'],
       ),
+    'getSitePhoto' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
+    'getUnreadGrievanceCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getUnreadNotificationCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'markAllNotificationsRead' : IDL.Func([], [IDL.Bool], []),
+    'markGrievancesRead' : IDL.Func([], [IDL.Bool], []),
+    'setSitePhoto' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
     'submitGrievance' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
     'submitRating' : IDL.Func(
         [IDL.Nat, IDL.Nat, IDL.Text, IDL.Text],
         [IDL.Nat],
         [],
       ),
-    'updateAdminPassword' : IDL.Func([IDL.Text, IDL.Text], [IDL.Bool], []),
+    'toggleCivilService' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Bool], []),
   });
 };
 

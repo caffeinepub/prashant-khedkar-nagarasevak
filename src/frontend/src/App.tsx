@@ -3,6 +3,7 @@ import AboutSection from "./components/AboutSection";
 import AdminPage from "./components/AdminPage";
 import CivicServicesSection from "./components/CivicServicesSection";
 import ContactSection from "./components/ContactSection";
+import FloatingContactButtons from "./components/FloatingContactButtons";
 import Footer from "./components/Footer";
 import GallerySection from "./components/GallerySection";
 import GovernmentSchemesSection from "./components/GovernmentSchemesSection";
@@ -38,6 +39,7 @@ export default function App() {
         <ContactSection />
       </main>
       <Footer />
+      <FloatingContactButtons />
     </div>
   );
 }

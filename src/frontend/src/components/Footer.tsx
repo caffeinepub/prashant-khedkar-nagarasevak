@@ -1,5 +1,14 @@
 import { Mail, MapPin, Phone } from "lucide-react";
-import { SiFacebook, SiInstagram, SiX, SiYoutube } from "react-icons/si";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiWhatsapp,
+  SiX,
+  SiYoutube,
+} from "react-icons/si";
+
+const WHATSAPP_GROUP_LINK =
+  "https://chat.whatsapp.com/JBtYw4OjxAE4YtyV7ZsOmT?mode=gi_t";
 
 const navLinks = [
   { label: "मुख्यपृष्ठ", href: "#hero" },
@@ -14,7 +23,18 @@ const navLinks = [
 
 const socialLinks = [
   { icon: SiFacebook, label: "Facebook", href: "#" },
-  { icon: SiInstagram, label: "Instagram", href: "#" },
+  {
+    icon: SiInstagram,
+    label: "Instagram",
+    href: "https://www.instagram.com/bhaiya_khedkar_official?igsh=a3RvMXZ6cGV5Zjkw",
+    target: "_blank",
+  },
+  {
+    icon: SiWhatsapp,
+    label: "WhatsApp Group",
+    href: WHATSAPP_GROUP_LINK,
+    target: "_blank",
+  },
   { icon: SiYoutube, label: "YouTube", href: "#" },
   { icon: SiX, label: "X (Twitter)", href: "#" },
 ];
@@ -64,11 +84,13 @@ export default function Footer() {
 
             {/* Social icons */}
             <div className="flex gap-3 mt-5">
-              {socialLinks.map(({ icon: Icon, label, href }) => (
+              {socialLinks.map(({ icon: Icon, label, href, target }) => (
                 <a
                   key={label}
                   href={href}
                   aria-label={label}
+                  target={target || undefined}
+                  rel={target === "_blank" ? "noopener noreferrer" : undefined}
                   className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                   style={{ background: "oklch(0.65 0.22 43 / 0.15)" }}
                 >
@@ -120,9 +142,11 @@ export default function Footer() {
                   style={{ color: "oklch(0.65 0.22 43)" }}
                 />
                 <span className="font-body text-white/70 text-sm">
-                  प्रभाग क्र. ८,
+                  611 ए वॉर्ड खेडकर गल्ली,
                   <br />
-                  कोल्हापूर - ४१६०१२
+                  बोर तालीम चौक,
+                  <br />
+                  लक्षतीर्थ वसाहत, कोल्हापूर
                 </span>
               </li>
               <li className="flex gap-3 items-center">

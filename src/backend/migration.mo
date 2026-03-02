@@ -1,8 +1,7 @@
-import List "mo:core/List";
-import Nat "mo:core/Nat";
+import Array "mo:core/Array";
 
 module {
-  type OldGrievanceSubmission = {
+  type GrievanceSubmission = {
     id : Nat;
     name : Text;
     mobile : Text;
@@ -10,7 +9,7 @@ module {
     timestamp : Int;
   };
 
-  type OldProject = {
+  type Project = {
     id : Nat;
     title : Text;
     description : Text;
@@ -18,7 +17,7 @@ module {
     category : Text;
   };
 
-  type OldGalleryPhoto = {
+  type GalleryPhoto = {
     id : Nat;
     url : Text;
     caption : Text;
@@ -26,7 +25,7 @@ module {
     timestamp : Int;
   };
 
-  type OldScheme = {
+  type Scheme = {
     id : Nat;
     title : Text;
     description : Text;
@@ -36,19 +35,7 @@ module {
     eligibility : Text;
   };
 
-  type OldActor = {
-    adminPassword : Text;
-    grievanceCounter : Nat;
-    galleryPhotoCounter : Nat;
-    projectCounter : Nat;
-    schemeCounter : Nat;
-    grievances : List.List<OldGrievanceSubmission>;
-    galleryPhotos : List.List<OldGalleryPhoto>;
-    schemes : List.List<OldScheme>;
-    projects : List.List<OldProject>;
-  };
-
-  type NewProjectRating = {
+  type ProjectRating = {
     id : Nat;
     projectId : Nat;
     rating : Nat;
@@ -57,21 +44,94 @@ module {
     timestamp : Int;
   };
 
+  type TeamMember = {
+    id : Nat;
+    name : Text;
+    role : Text;
+    photoUrl : Text;
+    mobile : Text;
+    description : Text;
+  };
+
+  type CivilService = {
+    id : Nat;
+    title : Text;
+    description : Text;
+    category : Text;
+    url : Text;
+    isActive : Bool;
+  };
+
+  type AppNotification = {
+    id : Nat;
+    title : Text;
+    body : Text;
+    timestamp : Int;
+  };
+
+  type OldActor = {
+    var grievanceCounter : Nat;
+    var galleryPhotoCounter : Nat;
+    var projectCounter : Nat;
+    var schemeCounter : Nat;
+    var ratingCounter : Nat;
+    var teamMemberCounter : Nat;
+    var civilServiceCounter : Nat;
+    var schemes : [Scheme];
+    var projects : [Project];
+    var teamMembers : [TeamMember];
+    var civilServices : [CivilService];
+    var grievances : [GrievanceSubmission];
+    var galleryPhotos : [GalleryPhoto];
+    var projectRatings : [ProjectRating];
+  };
+
   type NewActor = {
-    adminPassword : Text;
-    grievanceCounter : Nat;
-    galleryPhotoCounter : Nat;
-    projectCounter : Nat;
-    schemeCounter : Nat;
-    ratingCounter : Nat;
-    grievances : List.List<OldGrievanceSubmission>;
-    galleryPhotos : List.List<OldGalleryPhoto>;
-    schemes : List.List<OldScheme>;
-    projects : List.List<OldProject>;
-    projectRatings : List.List<NewProjectRating>;
+    var grievanceCounter : Nat;
+    var galleryPhotoCounter : Nat;
+    var projectCounter : Nat;
+    var schemeCounter : Nat;
+    var ratingCounter : Nat;
+    var teamMemberCounter : Nat;
+    var civilServiceCounter : Nat;
+    var notificationCounter : Nat;
+    var lastReadGrievanceCount : Nat;
+    var navbarPhotoData : Text;
+    var heroPhotoData : Text;
+    var aboutPhotoData : Text;
+    var grievances : [GrievanceSubmission];
+    var galleryPhotos : [GalleryPhoto];
+    var projectRatings : [ProjectRating];
+    var notifications : [AppNotification];
+    var schemes : [Scheme];
+    var projects : [Project];
+    var teamMembers : [TeamMember];
+    var civilServices : [CivilService];
   };
 
   public func run(old : OldActor) : NewActor {
-    { old with ratingCounter = 0; projectRatings = List.empty<NewProjectRating>() };
+    let newActor : NewActor = {
+      var grievanceCounter = old.grievanceCounter;
+      var galleryPhotoCounter = old.galleryPhotoCounter;
+      var projectCounter = old.projectCounter;
+      var schemeCounter = old.schemeCounter;
+      var ratingCounter = old.ratingCounter;
+      var teamMemberCounter = old.teamMemberCounter;
+      var civilServiceCounter = old.civilServiceCounter;
+      var notificationCounter = 0;
+      var lastReadGrievanceCount = 0;
+      var navbarPhotoData = "";
+      var heroPhotoData = "";
+      var aboutPhotoData = "";
+      var grievances = old.grievances;
+      var galleryPhotos = old.galleryPhotos;
+      var projectRatings = old.projectRatings;
+      var notifications : [AppNotification] = [];
+      var schemes = old.schemes;
+      var projects = old.projects;
+      var teamMembers = old.teamMembers;
+      var civilServices = old.civilServices;
+    };
+    newActor;
   };
 };

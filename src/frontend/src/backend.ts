@@ -104,6 +104,28 @@ export interface ProjectRating {
     timestamp: bigint;
     rating: bigint;
 }
+export interface AppNotification {
+    id: bigint;
+    title: string;
+    body: string;
+    timestamp: bigint;
+}
+export interface CivilService {
+    id: bigint;
+    url: string;
+    title: string;
+    description: string;
+    isActive: boolean;
+    category: string;
+}
+export interface TeamMember {
+    id: bigint;
+    name: string;
+    role: string;
+    description: string;
+    photoUrl: string;
+    mobile: string;
+}
 export interface Scheme {
     id: bigint;
     status: string;
@@ -128,29 +150,57 @@ export interface GrievanceSubmission {
     mobile: string;
 }
 export interface backendInterface {
+    addCivilService(title: string, description: string, category: string, url: string): Promise<bigint>;
     addGalleryPhoto(url: string, caption: string, sub: string): Promise<bigint>;
+    addNotification(title: string, body: string): Promise<bigint>;
     addProject(title: string, description: string, category: string, status: string): Promise<bigint>;
     addScheme(title: string, description: string, category: string, status: string, benefit: string, eligibility: string): Promise<bigint>;
+    addTeamMember(name: string, role: string, photoUrl: string, mobile: string, description: string): Promise<bigint>;
     adminLogin(password: string): Promise<boolean>;
+    deleteCivilService(id: bigint): Promise<boolean>;
     deleteGalleryPhoto(id: bigint): Promise<boolean>;
     deleteProject(id: bigint): Promise<boolean>;
     deleteScheme(id: bigint): Promise<boolean>;
+    deleteTeamMember(id: bigint): Promise<boolean>;
+    getAllCivilServices(): Promise<Array<CivilService>>;
     getAllGalleryPhotos(): Promise<Array<GalleryPhoto>>;
     getAllGrievances(): Promise<Array<GrievanceSubmission>>;
+    getAllNotifications(): Promise<Array<AppNotification>>;
     getAllProjects(): Promise<Array<Project>>;
     getAllRatings(): Promise<Array<ProjectRating>>;
     getAllSchemes(): Promise<Array<Scheme>>;
+    getAllTeamMembers(): Promise<Array<TeamMember>>;
     getAverageRating(projectId: bigint): Promise<{
         totalRatings: bigint;
         averageRating: bigint;
     }>;
     getRatingsForProject(projectId: bigint): Promise<Array<ProjectRating>>;
+    getSitePhoto(photoKey: string): Promise<string>;
+    getUnreadGrievanceCount(): Promise<bigint>;
+    getUnreadNotificationCount(): Promise<bigint>;
+    markAllNotificationsRead(): Promise<boolean>;
+    markGrievancesRead(): Promise<boolean>;
+    setSitePhoto(photoKey: string, data: string): Promise<boolean>;
     submitGrievance(name: string, mobile: string, message: string): Promise<bigint>;
     submitRating(projectId: bigint, rating: bigint, name: string, comment: string): Promise<bigint>;
-    updateAdminPassword(oldPassword: string, newPassword: string): Promise<boolean>;
+    toggleCivilService(id: bigint, isActive: boolean): Promise<boolean>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async addCivilService(arg0: string, arg1: string, arg2: string, arg3: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addCivilService(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addCivilService(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
     async addGalleryPhoto(arg0: string, arg1: string, arg2: string): Promise<bigint> {
         if (this.processError) {
             try {
@@ -162,6 +212,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addGalleryPhoto(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async addNotification(arg0: string, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addNotification(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addNotification(arg0, arg1);
             return result;
         }
     }
@@ -193,6 +257,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async addTeamMember(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addTeamMember(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addTeamMember(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
     async adminLogin(arg0: string): Promise<boolean> {
         if (this.processError) {
             try {
@@ -204,6 +282,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.adminLogin(arg0);
+            return result;
+        }
+    }
+    async deleteCivilService(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteCivilService(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteCivilService(arg0);
             return result;
         }
     }
@@ -249,6 +341,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteTeamMember(arg0: bigint): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteTeamMember(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteTeamMember(arg0);
+            return result;
+        }
+    }
+    async getAllCivilServices(): Promise<Array<CivilService>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllCivilServices();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllCivilServices();
+            return result;
+        }
+    }
     async getAllGalleryPhotos(): Promise<Array<GalleryPhoto>> {
         if (this.processError) {
             try {
@@ -274,6 +394,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getAllGrievances();
+            return result;
+        }
+    }
+    async getAllNotifications(): Promise<Array<AppNotification>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllNotifications();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllNotifications();
             return result;
         }
     }
@@ -319,6 +453,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllTeamMembers(): Promise<Array<TeamMember>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllTeamMembers();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllTeamMembers();
+            return result;
+        }
+    }
     async getAverageRating(arg0: bigint): Promise<{
         totalRatings: bigint;
         averageRating: bigint;
@@ -350,6 +498,90 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getSitePhoto(arg0: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSitePhoto(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSitePhoto(arg0);
+            return result;
+        }
+    }
+    async getUnreadGrievanceCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUnreadGrievanceCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUnreadGrievanceCount();
+            return result;
+        }
+    }
+    async getUnreadNotificationCount(): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUnreadNotificationCount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUnreadNotificationCount();
+            return result;
+        }
+    }
+    async markAllNotificationsRead(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markAllNotificationsRead();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markAllNotificationsRead();
+            return result;
+        }
+    }
+    async markGrievancesRead(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.markGrievancesRead();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.markGrievancesRead();
+            return result;
+        }
+    }
+    async setSitePhoto(arg0: string, arg1: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setSitePhoto(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setSitePhoto(arg0, arg1);
+            return result;
+        }
+    }
     async submitGrievance(arg0: string, arg1: string, arg2: string): Promise<bigint> {
         if (this.processError) {
             try {
@@ -378,17 +610,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateAdminPassword(arg0: string, arg1: string): Promise<boolean> {
+    async toggleCivilService(arg0: bigint, arg1: boolean): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateAdminPassword(arg0, arg1);
+                const result = await this.actor.toggleCivilService(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateAdminPassword(arg0, arg1);
+            const result = await this.actor.toggleCivilService(arg0, arg1);
             return result;
         }
     }
