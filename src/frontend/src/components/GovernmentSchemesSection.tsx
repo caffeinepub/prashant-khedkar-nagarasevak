@@ -12,10 +12,64 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Scheme } from "../backend.d";
 import {
+  useAddScheme,
   useGetAllSchemes,
   useGetLastSyncTime,
   useSyncGovtSchemes,
 } from "../hooks/useQueries";
+
+const KMC_NEW_SCHEMES_SEEDED_KEY = "kmc_new_schemes_seeded_v2";
+
+const NEW_GOVT_SCHEMES = [
+  {
+    title: "आयुष्मान भारत - पीएम जन आरोग्य",
+    description: "गरीब व असुरक्षित कुटुंबांना वार्षिक ५ लाख रुपयांपर्यंत मोफत आरोग्य सेवा.",
+    status: "active",
+    category: "आरोग्य",
+    benefit: "५ लाख रुपये आरोग्य विमा",
+    eligibility: "BPL व SECC नोंदणीकृत कुटुंबे",
+  },
+  {
+    title: "PM किसान सन्मान निधी",
+    description: "लहान व सीमांत शेतकऱ्यांना वार्षिक ₹६,०००/- रुपयांची थेट आर्थिक मदत.",
+    status: "active",
+    category: "शेती",
+    benefit: "वार्षिक ₹६,०००/-",
+    eligibility: "लहान व सीमांत शेतकरी",
+  },
+  {
+    title: "सुकन्या समृद्धी योजना",
+    description: "मुलींच्या भविष्यासाठी बचत योजना. उच्च व्याजदर व कर सूट.",
+    status: "active",
+    category: "महिला व बाल विकास",
+    benefit: "उच्च व्याज + कर सूट",
+    eligibility: "१० वर्षांखालील मुली",
+  },
+  {
+    title: "पीएम मुद्रा योजना",
+    description: "लघु उद्योजकांना तारणमुक्त कर्ज देणारी योजना.",
+    status: "active",
+    category: "उद्योग",
+    benefit: "१० लाखांपर्यंत कर्ज",
+    eligibility: "सूक्ष्म व लघु उद्योजक",
+  },
+  {
+    title: "महाराष्ट्र लाडकी बहीण योजना",
+    description: "महाराष्ट्रातील पात्र महिलांना दरमहा आर्थिक सहाय्य.",
+    status: "active",
+    category: "महिला कल्याण",
+    benefit: "मासिक आर्थिक अनुदान",
+    eligibility: "२१-६५ वयोगटातील महिला",
+  },
+  {
+    title: "राष्ट्रीय शहरी उपजीविका अभियान (NULM)",
+    description: "शहरी गरिबांना स्वयंरोजगार व कौशल्य विकासाच्या संधी.",
+    status: "active",
+    category: "रोजगार",
+    benefit: "कौशल्य प्रशिक्षण व कर्ज",
+    eligibility: "शहरी गरीब व बेरोजगार",
+  },
+];
 
 type FilterTab = "all" | "active" | "past" | "upcoming";
 
@@ -113,6 +167,8 @@ function SchemeCard({ scheme, index }: { scheme: Scheme; index: number }) {
   const schemeAny = scheme as unknown as { source?: string };
   const isGovt = (schemeAny.source ?? "manual") === "govt";
   const kmcLink = getKmcLinkForCategory(scheme.category);
+  // Show "नवीन" badge for schemes added after the first 3 (auto-seeded have id > 3)
+  const isNew = scheme.id > 3n;
 
   return (
     <motion.div
@@ -120,8 +176,22 @@ function SchemeCard({ scheme, index }: { scheme: Scheme; index: number }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300"
+      className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300 relative"
     >
+      {/* "नवीन" badge overlay for recently auto-added schemes */}
+      {isNew && (
+        <div
+          className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-xs font-bold font-body"
+          style={{
+            background: "oklch(0.60 0.18 150)",
+            color: "white",
+            boxShadow: "0 2px 8px oklch(0.60 0.18 150 / 0.40)",
+          }}
+        >
+          ✨ नवीन
+        </div>
+      )}
+
       {/* Status accent line */}
       <div
         className="h-1.5 w-full"
@@ -251,12 +321,36 @@ export default function GovernmentSchemesSection() {
   const { data: schemes = [], isLoading } = useGetAllSchemes();
   const { data: lastSyncTime = 0n } = useGetLastSyncTime();
   const { mutate: syncSchemes, isPending: isSyncing } = useSyncGovtSchemes();
+  const { mutateAsync: addScheme } = useAddScheme();
 
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
   // Keep a stable ref to syncSchemes so the interval closure doesn't stale
   const syncRef = useRef(syncSchemes);
   syncRef.current = syncSchemes;
+
+  // Auto-seed new government schemes once (uses actor via useAddScheme)
+  const didSeedRef = useRef(false);
+  useEffect(() => {
+    if (didSeedRef.current) return;
+    const alreadySeeded = localStorage.getItem(KMC_NEW_SCHEMES_SEEDED_KEY);
+    if (alreadySeeded) return;
+    didSeedRef.current = true;
+
+    // Seed sequentially to avoid race conditions
+    const seedAll = async () => {
+      try {
+        for (const scheme of NEW_GOVT_SCHEMES) {
+          await addScheme(scheme);
+        }
+        localStorage.setItem(KMC_NEW_SCHEMES_SEEDED_KEY, "1");
+      } catch {
+        // silently fail — will retry next mount if key not set
+        didSeedRef.current = false;
+      }
+    };
+    seedAll();
+  }, [addScheme]);
 
   const triggerSync = useCallback(() => {
     syncRef.current();

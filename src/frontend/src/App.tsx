@@ -7,6 +7,7 @@ import FloatingContactButtons from "./components/FloatingContactButtons";
 import Footer from "./components/Footer";
 import GallerySection from "./components/GallerySection";
 import GovernmentSchemesSection from "./components/GovernmentSchemesSection";
+import HDPhotosSection from "./components/HDPhotosSection";
 import HeroSection from "./components/HeroSection";
 import InformationSection from "./components/InformationSection";
 import Navbar from "./components/Navbar";
@@ -37,6 +38,7 @@ export default function App() {
         <InformationSection />
         <GallerySection />
         <ContactSection />
+        <HDPhotosSection />
       </main>
       <Footer />
       <FloatingContactButtons />

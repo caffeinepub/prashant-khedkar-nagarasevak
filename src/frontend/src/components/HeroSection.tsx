@@ -212,9 +212,9 @@ export default function HeroSection() {
                   el.style.display = "none";
                   const parent = el.parentElement;
                   if (parent) {
-                    parent.style.background = "oklch(0.65 0.22 43 / 0.40)";
+                    parent.style.background = "oklch(0.65 0.22 43 / 0.15)";
                     parent.innerHTML =
-                      '<span style="font-size:2.5rem;display:flex;align-items:center;justify-content:center;height:100%;">🧑‍💼</span>';
+                      '<div style="width:100%;height:100%;background:oklch(0.65 0.22 43/0.15);display:flex;align-items:center;justify-content:center;border-radius:9999px;"></div>';
                   }
                 }}
               />

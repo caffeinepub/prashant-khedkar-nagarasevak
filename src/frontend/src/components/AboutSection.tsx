@@ -85,7 +85,7 @@ export default function AboutSection() {
                       parent.style.alignItems = "center";
                       parent.style.justifyContent = "center";
                       parent.innerHTML =
-                        '<div style="text-align:center;padding:1rem"><div style="font-size:5rem;line-height:1">👤</div><p style="color:oklch(0.52 0.20 43);font-weight:bold;margin-top:0.5rem;font-size:0.875rem">भैय्या खेडकर</p></div>';
+                        '<div style="width:100%;height:100%;background:oklch(0.65 0.22 43/0.10);display:flex;align-items:center;justify-content:center;border-radius:1rem;"><p style="color:oklch(0.52 0.20 43);font-weight:bold;font-size:0.875rem;text-align:center;">भैय्या खेडकर</p></div>';
                     }
                   }}
                 />

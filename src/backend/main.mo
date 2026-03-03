@@ -1,9 +1,9 @@
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Nat "mo:core/Nat";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   type GrievanceSubmission = {
     id : Nat;

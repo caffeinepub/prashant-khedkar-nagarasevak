@@ -44,6 +44,11 @@ const CATEGORY_COLORS: Record<
     text: "oklch(0.40 0.18 20)",
     border: "oklch(0.82 0.12 20)",
   },
+  "वीज सेवा": {
+    bg: "oklch(0.96 0.06 70)",
+    text: "oklch(0.38 0.16 70)",
+    border: "oklch(0.80 0.12 70)",
+  },
 };
 
 const DEFAULT_CATEGORY_COLORS = {
@@ -240,12 +245,32 @@ function FilterTab({
 
 // ─── Main Section ──────────────────────────────────────────────────────────────
 
+// Static MSEB entry always shown alongside backend services
+const MSEB_STATIC_SERVICE: CivicService = {
+  id: BigInt(9999),
+  icon: "⚡",
+  title: "वीज बिल भरणा (MSEB)",
+  description: "महाडिस्कॉम पोर्टलवर वीज बिल ऑनलाइन भरा. थकबाकी तपासा व भरणा करा.",
+  category: "वीज सेवा",
+  link: "https://wss.mahadiscom.in/wss/wss",
+  buttonLabel: "वीज बिल भरा",
+  isActive: true,
+};
+
 export default function CivicServicesSection() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("सर्व");
-  const { data: allServices = [], isLoading } = useGetAllCivicServices();
+  const { data: rawServices = [], isLoading } = useGetAllCivicServices();
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Merge in the static MSEB entry if not already present
+  const allServices = useMemo(() => {
+    const hasMseb = rawServices.some(
+      (s) => s.title === MSEB_STATIC_SERVICE.title,
+    );
+    return hasMseb ? rawServices : [...rawServices, MSEB_STATIC_SERVICE];
+  }, [rawServices]);
 
   const activeServices = useMemo(
     () => allServices.filter((s) => s.isActive),

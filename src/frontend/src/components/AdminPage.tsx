@@ -32,10 +32,12 @@ import {
   useGetAllRatings,
   useGetAllSchemes,
   useGetAllTeamMembers,
+  useGetGrievanceReplies,
   useGetSitePhoto,
   useGetUnreadGrievanceCount,
   useMarkAllNotificationsRead,
   useMarkGrievancesRead,
+  useReplyToGrievance,
   useSetSitePhoto,
   useSyncGovtSchemes,
   useUpdateCivicService,
@@ -204,17 +206,27 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
 // ─── Grievances Tab ────────────────────────────────────────────────────────────
 
-function GrievancesTab() {
-  const { data: grievances = [], isLoading } = useGetAllGrievances();
-  const { mutate: markGrievancesReadFn } = useMarkGrievancesRead();
+function GrievanceCard({
+  g,
+  reply,
+  onReply,
+}: {
+  g: {
+    id: bigint;
+    name: string;
+    mobile: string;
+    message: string;
+    timestamp: bigint;
+  };
+  reply?: { reply: string; repliedAt: number };
+  onReply: (id: string, citizenName: string, text: string) => Promise<void>;
+}) {
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-  // Mark grievances as read when this tab mounts
-  useEffect(() => {
-    markGrievancesReadFn();
-  }, [markGrievancesReadFn]);
-
-  const formatDate = (timestamp: bigint) => {
-    const ms = Number(timestamp) / 1_000_000;
+  const formatDate = (ts: bigint) => {
+    const ms = Number(ts) / 1_000_000;
     return new Date(ms).toLocaleDateString("mr-IN", {
       year: "numeric",
       month: "short",
@@ -222,6 +234,209 @@ function GrievancesTab() {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatReplyDate = (ms: number) =>
+    new Date(ms).toLocaleDateString("mr-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) return;
+    setIsSending(true);
+    try {
+      await onReply(String(g.id), g.name, replyText.trim());
+      setReplyText("");
+      setShowReplyBox(false);
+      toast.success("उत्तर पाठवले! नागरिकांना सूचना गेली.");
+    } catch {
+      toast.error("उत्तर पाठवता आले नाही.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <div
+      data-ocid={`admin.grievances.item.${String(g.id)}`}
+      className="rounded-2xl p-5 border"
+      style={{
+        borderColor: reply
+          ? "oklch(0.60 0.18 150 / 0.25)"
+          : "oklch(0.28 0.04 243 / 0.10)",
+        background: reply ? "oklch(0.98 0.008 150)" : "oklch(0.98 0.003 243)",
+      }}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+        <div>
+          <p
+            className="font-display font-bold text-base"
+            style={{ color: "oklch(0.28 0.04 243)" }}
+          >
+            {g.name}
+          </p>
+          <p
+            className="font-body text-sm"
+            style={{ color: "oklch(0.52 0.20 43)" }}
+          >
+            📞 {g.mobile}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <p
+            className="font-body text-xs"
+            style={{ color: "oklch(0.50 0.02 243)" }}
+          >
+            {formatDate(g.timestamp)}
+          </p>
+          {reply ? (
+            <span
+              className="px-2 py-0.5 rounded-full text-xs font-bold font-body"
+              style={{
+                background: "oklch(0.60 0.18 150 / 0.18)",
+                color: "oklch(0.38 0.16 150)",
+              }}
+            >
+              ✅ उत्तर दिले
+            </span>
+          ) : (
+            <span
+              className="px-2 py-0.5 rounded-full text-xs font-bold font-body"
+              style={{
+                background: "oklch(0.65 0.22 43 / 0.12)",
+                color: "oklch(0.52 0.20 43)",
+              }}
+            >
+              ⏳ प्रतीक्षेत
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Grievance message */}
+      <p
+        className="font-body text-sm leading-relaxed mb-3"
+        style={{ color: "oklch(0.35 0.04 243)" }}
+      >
+        {g.message}
+      </p>
+
+      {/* Reply display */}
+      {reply && (
+        <div
+          className="rounded-xl p-4 mt-2 mb-3"
+          style={{
+            background: "oklch(0.60 0.18 150 / 0.10)",
+            border: "1px solid oklch(0.60 0.18 150 / 0.25)",
+          }}
+        >
+          <p
+            className="font-display font-bold text-xs mb-1"
+            style={{ color: "oklch(0.38 0.16 150)" }}
+          >
+            ✅ प्रशासनाचे उत्तर:
+          </p>
+          <p
+            className="font-body text-sm leading-relaxed"
+            style={{ color: "oklch(0.30 0.06 150)" }}
+          >
+            {reply.reply}
+          </p>
+          <p
+            className="font-body text-xs mt-1"
+            style={{ color: "oklch(0.50 0.08 150)" }}
+          >
+            {formatReplyDate(reply.repliedAt)}
+          </p>
+        </div>
+      )}
+
+      {/* Reply action */}
+      {!reply && (
+        <div className="mt-3">
+          {!showReplyBox ? (
+            <button
+              type="button"
+              data-ocid="admin.grievances.edit_button"
+              onClick={() => setShowReplyBox(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-80"
+              style={{
+                background: "oklch(0.65 0.22 43 / 0.10)",
+                color: "oklch(0.52 0.20 43)",
+                border: "1px solid oklch(0.65 0.22 43 / 0.25)",
+              }}
+            >
+              <MessageSquare size={14} />
+              उत्तर द्या
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <Textarea
+                placeholder="तक्रारदाराला उत्तर लिहा..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={3}
+                className="rounded-xl font-body text-sm resize-none"
+                data-ocid="admin.grievances.textarea"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-ocid="admin.grievances.submit_button"
+                  onClick={handleSendReply}
+                  disabled={isSending || !replyText.trim()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-display font-bold text-sm text-white transition-all duration-200 disabled:opacity-60"
+                  style={{ background: "oklch(0.65 0.22 43)" }}
+                >
+                  {isSending ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <CheckCircle2 size={14} />
+                  )}
+                  {isSending ? "पाठवत आहे..." : "उत्तर पाठवा"}
+                </button>
+                <button
+                  type="button"
+                  data-ocid="admin.grievances.cancel_button"
+                  onClick={() => {
+                    setShowReplyBox(false);
+                    setReplyText("");
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-70"
+                  style={{
+                    background: "oklch(0.28 0.04 243 / 0.08)",
+                    color: "oklch(0.40 0.04 243)",
+                  }}
+                >
+                  <X size={14} />
+                  रद्द करा
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GrievancesTab() {
+  const { data: grievances = [], isLoading } = useGetAllGrievances();
+  const { data: replies = {} } = useGetGrievanceReplies();
+  const { mutate: markGrievancesReadFn } = useMarkGrievancesRead();
+  const { mutateAsync: replyToGrievance } = useReplyToGrievance();
+
+  // Mark grievances as read when this tab mounts
+  useEffect(() => {
+    markGrievancesReadFn();
+  }, [markGrievancesReadFn]);
+
+  const handleReply = async (id: string, citizenName: string, text: string) => {
+    await replyToGrievance({ id, reply: text, citizenName });
   };
 
   if (isLoading) {
@@ -236,30 +451,44 @@ function GrievancesTab() {
     );
   }
 
+  const repliedCount = grievances.filter((g) => replies[String(g.id)]).length;
+
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3
           className="font-display font-bold text-lg"
           style={{ color: "oklch(0.28 0.04 243)" }}
         >
           प्राप्त तक्रारी
         </h3>
-        <span
-          className="px-3 py-1 rounded-full text-xs font-bold font-body"
-          style={{
-            background: "oklch(0.28 0.04 243 / 0.10)",
-            color: "oklch(0.28 0.04 243)",
-          }}
-        >
-          एकूण: {grievances.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body"
+            style={{
+              background: "oklch(0.60 0.18 150 / 0.14)",
+              color: "oklch(0.38 0.16 150)",
+            }}
+          >
+            ✅ उत्तरित: {repliedCount}
+          </span>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body"
+            style={{
+              background: "oklch(0.28 0.04 243 / 0.10)",
+              color: "oklch(0.28 0.04 243)",
+            }}
+          >
+            एकूण: {grievances.length}
+          </span>
+        </div>
       </div>
 
       {grievances.length === 0 ? (
         <div
           className="rounded-2xl p-12 text-center border"
+          data-ocid="admin.grievances.empty_state"
           style={{
             borderColor: "oklch(0.28 0.04 243 / 0.10)",
             background: "oklch(0.97 0.005 243)",
@@ -280,43 +509,12 @@ function GrievancesTab() {
       ) : (
         <div className="space-y-3">
           {grievances.map((g) => (
-            <div
+            <GrievanceCard
               key={String(g.id)}
-              className="rounded-2xl p-5 border"
-              style={{
-                borderColor: "oklch(0.28 0.04 243 / 0.10)",
-                background: "oklch(0.98 0.003 243)",
-              }}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                <div>
-                  <p
-                    className="font-display font-bold text-base"
-                    style={{ color: "oklch(0.28 0.04 243)" }}
-                  >
-                    {g.name}
-                  </p>
-                  <p
-                    className="font-body text-sm"
-                    style={{ color: "oklch(0.52 0.20 43)" }}
-                  >
-                    📞 {g.mobile}
-                  </p>
-                </div>
-                <p
-                  className="font-body text-xs shrink-0"
-                  style={{ color: "oklch(0.50 0.02 243)" }}
-                >
-                  {formatDate(g.timestamp)}
-                </p>
-              </div>
-              <p
-                className="font-body text-sm leading-relaxed"
-                style={{ color: "oklch(0.35 0.04 243)" }}
-              >
-                {g.message}
-              </p>
-            </div>
+              g={g}
+              reply={replies[String(g.id)]}
+              onReply={handleReply}
+            />
           ))}
         </div>
       )}
@@ -1809,9 +2007,34 @@ function TeamMembersTab() {
 
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
-  const [photo, setPhoto] = useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [mobile, setMobile] = useState("");
   const [description, setDescription] = useState("");
+  const teamPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleTeamPhotoChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const resized = await resizeImageFile(file);
+      setPreviewPhoto(resized);
+      setPhotoUrl("");
+    } catch {
+      toast.error("फोटो प्रक्रिया करताना चूक झाली.");
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  const clearTeamPhoto = () => {
+    setPreviewPhoto(null);
+    if (teamPhotoInputRef.current) teamPhotoInputRef.current.value = "";
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1819,18 +2042,21 @@ function TeamMembersTab() {
       toast.error("कृपया नाव आणि पद भरा.");
       return;
     }
+    const finalPhoto = previewPhoto || photoUrl.trim();
     try {
       await addMember({
         name: name.trim(),
         designation: designation.trim(),
-        photo: photo.trim(),
+        photo: finalPhoto,
         mobile: mobile.trim(),
         description: description.trim(),
       });
       toast.success("सदस्य यशस्वीरित्या जोडला!");
       setName("");
       setDesignation("");
-      setPhoto("");
+      setPhotoUrl("");
+      setPreviewPhoto(null);
+      if (teamPhotoInputRef.current) teamPhotoInputRef.current.value = "";
       setMobile("");
       setDescription("");
     } catch {
@@ -1884,6 +2110,7 @@ function TeamMembersTab() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 className="h-10 rounded-lg font-body text-sm"
+                data-ocid="admin.team.input"
               />
             </div>
             <div className="space-y-1.5">
@@ -1905,41 +2132,121 @@ function TeamMembersTab() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {/* Photo gallery picker */}
+          <div className="space-y-2">
+            <Label
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              📷 सदस्याचा फोटो (गॅलरीतून)
+            </Label>
+            <input
+              ref={teamPhotoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleTeamPhotoChange}
+              id="team-member-photo-upload"
+            />
+            {previewPhoto ? (
+              <div
+                className="relative rounded-xl overflow-hidden border-2 w-32"
+                style={{ borderColor: "oklch(0.65 0.22 43)" }}
+              >
+                <img
+                  src={previewPhoto}
+                  alt="निवडलेला फोटो"
+                  className="w-32 h-32 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={clearTeamPhoto}
+                  className="absolute top-1 right-1 w-7 h-7 rounded-full flex items-center justify-center text-white shadow"
+                  style={{ background: "oklch(0.45 0.20 25)" }}
+                  aria-label="फोटो काढा"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="team-member-photo-upload"
+                className="block cursor-pointer w-32"
+                data-ocid="admin.team.upload_button"
+              >
+                <div
+                  className="w-32 h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-all duration-200 hover:opacity-80"
+                  style={{
+                    borderColor: "oklch(0.65 0.22 43 / 0.40)",
+                    background: "oklch(0.65 0.22 43 / 0.04)",
+                  }}
+                >
+                  {isProcessingPhoto ? (
+                    <Loader2
+                      size={20}
+                      className="animate-spin"
+                      style={{ color: "oklch(0.65 0.22 43)" }}
+                    />
+                  ) : (
+                    <>
+                      <Camera
+                        size={22}
+                        style={{ color: "oklch(0.65 0.22 43)" }}
+                      />
+                      <p
+                        className="font-body text-xs font-semibold text-center px-1"
+                        style={{ color: "oklch(0.52 0.20 43)" }}
+                      >
+                        गॅलरीतून निवडा
+                      </p>
+                    </>
+                  )}
+                </div>
+              </label>
+            )}
+            {/* URL fallback */}
             <div className="space-y-1.5">
               <Label
                 htmlFor="tm-photo"
-                className="font-body text-sm font-semibold"
-                style={{ color: "oklch(0.28 0.04 243)" }}
+                className="font-body text-xs font-semibold flex items-center gap-1.5"
+                style={{ color: "oklch(0.45 0.02 243)" }}
               >
-                फोटो URL
+                <Upload size={11} />
+                किंवा URL टाका
               </Label>
               <Input
                 id="tm-photo"
                 type="url"
                 placeholder="https://example.com/photo.jpg"
-                value={photo}
-                onChange={(e) => setPhoto(e.target.value)}
+                value={photoUrl}
+                onChange={(e) => {
+                  setPhotoUrl(e.target.value);
+                  if (e.target.value) clearTeamPhoto();
+                }}
+                disabled={!!previewPhoto}
                 className="h-10 rounded-lg font-body text-sm"
+                style={{ opacity: previewPhoto ? 0.45 : 1 }}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="tm-mobile"
-                className="font-body text-sm font-semibold"
-                style={{ color: "oklch(0.28 0.04 243)" }}
-              >
-                मोबाईल नंबर
-              </Label>
-              <Input
-                id="tm-mobile"
-                type="text"
-                placeholder="उदा. +91 98765 43210"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className="h-10 rounded-lg font-body text-sm"
-              />
-            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="tm-mobile"
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              मोबाईल नंबर
+            </Label>
+            <Input
+              id="tm-mobile"
+              type="text"
+              placeholder="उदा. +91 98765 43210"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              className="h-10 rounded-lg font-body text-sm"
+            />
           </div>
           <div className="space-y-1.5">
             <Label
@@ -1960,9 +2267,10 @@ function TeamMembersTab() {
           </div>
           <Button
             type="submit"
-            disabled={isAdding}
+            disabled={isAdding || isProcessingPhoto}
             className="h-10 px-6 rounded-xl font-display font-bold text-sm text-white"
             style={{ background: "oklch(0.65 0.22 43)" }}
+            data-ocid="admin.team.submit_button"
           >
             {isAdding ? (
               <>
@@ -2490,7 +2798,7 @@ function SitePhotoSection({
                 <img
                   src={previewSrc}
                   alt="नवीन फोटो preview"
-                  className="w-full h-32 object-cover object-top rounded-xl border-2"
+                  className="w-full h-40 object-cover object-top rounded-xl border-2"
                   style={{ borderColor: "oklch(0.65 0.22 43)" }}
                 />
                 <button
@@ -2529,7 +2837,7 @@ function SitePhotoSection({
               className="block cursor-pointer"
             >
               <div
-                className="w-full h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:opacity-80"
+                className="w-full h-40 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:opacity-80"
                 style={{
                   borderColor: "oklch(0.65 0.22 43 / 0.40)",
                   background: "oklch(0.65 0.22 43 / 0.04)",
@@ -2538,24 +2846,24 @@ function SitePhotoSection({
               >
                 {isProcessing ? (
                   <Loader2
-                    size={22}
+                    size={28}
                     className="animate-spin"
                     style={{ color: "oklch(0.65 0.22 43)" }}
                   />
                 ) : (
                   <>
                     <Camera
-                      size={22}
+                      size={28}
                       style={{ color: "oklch(0.65 0.22 43)" }}
                     />
                     <p
-                      className="font-body text-xs font-semibold text-center px-2"
+                      className="font-body text-sm font-semibold text-center px-2"
                       style={{ color: "oklch(0.52 0.20 43)" }}
                     >
                       📷 गॅलरीतून फोटो निवडा
                     </p>
                     <p
-                      className="font-body text-xs"
+                      className="font-body text-sm"
                       style={{ color: "oklch(0.60 0.02 243)" }}
                     >
                       हा फोटो वेबसाइटवर कायमस्वरूपी दिसेल
@@ -2840,115 +3148,566 @@ function NotificationsTab() {
   );
 }
 
-// ─── Dashboard Tabs (with badge support) ──────────────────────────────────────
+// ─── HD Gallery Tab ───────────────────────────────────────────────────────────
+
+function HDGalleryTab() {
+  const { data: allPhotos = [], isLoading } = useGetAllGalleryPhotos();
+  const { mutateAsync: addPhoto, isPending: isAdding } = useAddGalleryPhoto();
+  const { mutateAsync: deletePhoto, isPending: isDeleting } =
+    useDeleteGalleryPhoto();
+  const [deletingId, setDeletingId] = useState<bigint | null>(null);
+
+  const hdPhotos = allPhotos.filter((p) => p.sub === "hd");
+
+  const [caption, setCaption] = useState("");
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [urlFallback, setUrlFallback] = useState("");
+  const hdFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessing(true);
+    try {
+      const resized = await resizeImageFile(file);
+      setPreviewSrc(resized);
+      setUrlFallback("");
+    } catch {
+      toast.error("फोटो प्रक्रिया करताना चूक झाली.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const clearFile = () => {
+    setPreviewSrc(null);
+    if (hdFileInputRef.current) hdFileInputRef.current.value = "";
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalUrl = previewSrc || urlFallback.trim();
+    if (!finalUrl || !caption.trim()) {
+      toast.error("कृपया फोटो निवडा आणि शीर्षक भरा.");
+      return;
+    }
+    try {
+      await addPhoto({ url: finalUrl, caption: caption.trim(), sub: "hd" });
+      toast.success("HD फोटो यशस्वीरित्या जोडला!");
+      setCaption("");
+      setPreviewSrc(null);
+      setUrlFallback("");
+      if (hdFileInputRef.current) hdFileInputRef.current.value = "";
+    } catch {
+      toast.error("काहीतरी चूक झाली.");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    setDeletingId(id);
+    try {
+      await deletePhoto(id);
+      toast.success("HD फोटो हटवला.");
+    } catch {
+      toast.error("फोटो हटवता आला नाही.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3
+          className="font-display font-bold text-lg mb-1"
+          style={{ color: "oklch(0.28 0.04 243)" }}
+        >
+          HD फोटो विभाग
+        </h3>
+        <p
+          className="font-body text-sm"
+          style={{ color: "oklch(0.50 0.03 243)" }}
+        >
+          येथे जोडलेले फोटो वेबसाइटवर "भैय्या खेडकर - विशेष फोटो" विभागात दिसतील.
+        </p>
+      </div>
+
+      {/* Add form */}
+      <div
+        className="rounded-2xl p-6 border"
+        style={{
+          borderColor: "oklch(0.65 0.22 43 / 0.20)",
+          background: "oklch(0.65 0.22 43 / 0.04)",
+        }}
+      >
+        <h4
+          className="font-display font-bold text-base mb-4"
+          style={{ color: "oklch(0.28 0.04 243)" }}
+        >
+          नवीन HD फोटो जोडा
+        </h4>
+        <form onSubmit={handleAdd} className="space-y-4">
+          {/* Gallery upload */}
+          <div className="space-y-2">
+            <Label
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              📷 गॅलरीतून HD फोटो निवडा
+            </Label>
+            <input
+              ref={hdFileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+              id="hd-gallery-photo-upload"
+            />
+            {previewSrc ? (
+              <div
+                className="relative rounded-xl overflow-hidden border-2"
+                style={{ borderColor: "oklch(0.65 0.22 43)" }}
+              >
+                <img
+                  src={previewSrc}
+                  alt="निवडलेला फोटो"
+                  className="w-full h-52 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={clearFile}
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md"
+                  style={{ background: "oklch(0.45 0.20 25)" }}
+                >
+                  <X size={15} />
+                </button>
+                <div
+                  className="absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-body font-semibold text-white"
+                  style={{ background: "oklch(0.40 0.16 150 / 0.90)" }}
+                >
+                  ✓ HD फोटो निवडला
+                </div>
+              </div>
+            ) : (
+              <label
+                htmlFor="hd-gallery-photo-upload"
+                className="block cursor-pointer"
+                data-ocid="admin.hd-gallery.upload_button"
+              >
+                <div
+                  className="w-full h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:opacity-80"
+                  style={{
+                    borderColor: "oklch(0.65 0.22 43 / 0.40)",
+                    background: "oklch(0.65 0.22 43 / 0.04)",
+                  }}
+                >
+                  {isProcessing ? (
+                    <Loader2
+                      size={24}
+                      className="animate-spin"
+                      style={{ color: "oklch(0.65 0.22 43)" }}
+                    />
+                  ) : (
+                    <>
+                      <Camera
+                        size={28}
+                        style={{ color: "oklch(0.65 0.22 43)" }}
+                      />
+                      <p
+                        className="font-body text-sm font-semibold"
+                        style={{ color: "oklch(0.52 0.20 43)" }}
+                      >
+                        येथे टॅप करा — गॅलरी / कॅमेरा
+                      </p>
+                      <p
+                        className="font-body text-xs"
+                        style={{ color: "oklch(0.60 0.02 243)" }}
+                      >
+                        हा फोटो HD विभागात दिसेल
+                      </p>
+                    </>
+                  )}
+                </div>
+              </label>
+            )}
+          </div>
+
+          {/* URL fallback */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="hd-url-fallback"
+              className="font-body text-xs font-semibold flex items-center gap-1.5"
+              style={{ color: "oklch(0.45 0.02 243)" }}
+            >
+              <Upload size={11} />
+              किंवा URL टाका
+            </Label>
+            <Input
+              id="hd-url-fallback"
+              type="url"
+              placeholder="https://example.com/photo.jpg"
+              value={urlFallback}
+              onChange={(e) => {
+                setUrlFallback(e.target.value);
+                if (e.target.value) clearFile();
+              }}
+              disabled={!!previewSrc}
+              className="h-10 rounded-lg font-body text-sm"
+              style={{ opacity: previewSrc ? 0.45 : 1 }}
+            />
+          </div>
+
+          {/* Caption */}
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="hd-caption"
+              className="font-body text-sm font-semibold"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            >
+              शीर्षक *
+            </Label>
+            <Input
+              id="hd-caption"
+              type="text"
+              placeholder="उदा. प्रभाग क्र. ८ दौरा"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              required
+              className="h-10 rounded-lg font-body text-sm"
+              data-ocid="admin.hd-gallery.input"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={
+              isAdding ||
+              isProcessing ||
+              (!previewSrc && !urlFallback.trim()) ||
+              !caption.trim()
+            }
+            className="h-10 px-6 rounded-xl font-display font-bold text-sm text-white"
+            style={{ background: "oklch(0.65 0.22 43)" }}
+            data-ocid="admin.hd-gallery.submit_button"
+          >
+            {isAdding ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                जोडत आहे...
+              </>
+            ) : (
+              "HD फोटो जोडा"
+            )}
+          </Button>
+        </form>
+      </div>
+
+      {/* HD Photos list */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4
+            className="font-display font-bold text-base"
+            style={{ color: "oklch(0.28 0.04 243)" }}
+          >
+            सध्याचे HD फोटो
+          </h4>
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body"
+            style={{
+              background: "oklch(0.28 0.04 243 / 0.08)",
+              color: "oklch(0.28 0.04 243)",
+            }}
+          >
+            एकूण: {hdPhotos.length}
+          </span>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2
+              className="animate-spin"
+              size={28}
+              style={{ color: "oklch(0.65 0.22 43)" }}
+            />
+          </div>
+        ) : hdPhotos.length === 0 ? (
+          <div
+            className="rounded-2xl p-10 text-center border"
+            data-ocid="admin.hd-gallery.empty_state"
+            style={{
+              borderColor: "oklch(0.28 0.04 243 / 0.10)",
+              background: "oklch(0.97 0.005 243)",
+            }}
+          >
+            <Image
+              size={36}
+              className="mx-auto mb-3 opacity-30"
+              style={{ color: "oklch(0.28 0.04 243)" }}
+            />
+            <p
+              className="font-body text-sm"
+              style={{ color: "oklch(0.28 0.04 243 / 0.50)" }}
+            >
+              अजून कोणताही HD फोटो जोडलेला नाही
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {hdPhotos.map((photo) => (
+              <div
+                key={String(photo.id)}
+                className="relative rounded-xl overflow-hidden border group"
+                style={{ borderColor: "oklch(0.28 0.04 243 / 0.10)" }}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.caption}
+                  className="w-full h-28 object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                <div className="p-2 flex items-center justify-between gap-1">
+                  <p
+                    className="font-body text-xs font-semibold truncate flex-1"
+                    style={{ color: "oklch(0.28 0.04 243)" }}
+                  >
+                    {photo.caption}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isDeleting && deletingId === photo.id}
+                    onClick={() => handleDelete(photo.id)}
+                    className="shrink-0 h-7 w-7 p-0 rounded-lg hover:bg-red-50"
+                    style={{ color: "oklch(0.55 0.20 25)" }}
+                    data-ocid="admin.hd-gallery.delete_button"
+                  >
+                    {isDeleting && deletingId === photo.id ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={12} />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Dashboard Tabs (grouped, simplified layout) ──────────────────────────────
 
 function DashboardTabs() {
   const { data: unreadGrievanceCount = 0n } = useGetUnreadGrievanceCount();
   const grievanceBadge = Number(unreadGrievanceCount) > 0;
+  const [activeTab, setActiveTab] = useState("grievances");
+
+  const primaryTabs = [
+    {
+      value: "grievances",
+      icon: MessageSquare,
+      label: "तक्रारी",
+      badge: grievanceBadge,
+      ocid: "admin.grievances.tab",
+    },
+    {
+      value: "photos",
+      icon: Camera,
+      label: "फोटो",
+      badge: false,
+      ocid: "admin.photos.tab",
+    },
+    {
+      value: "gallery",
+      icon: Image,
+      label: "गॅलरी",
+      badge: false,
+      ocid: "admin.gallery.tab",
+    },
+    {
+      value: "hd-gallery",
+      icon: Image,
+      label: "HD फोटो",
+      badge: false,
+      ocid: "admin.hd-gallery.tab",
+    },
+    {
+      value: "notifications",
+      icon: Bell,
+      label: "सूचना",
+      badge: false,
+      ocid: "admin.notifications.tab",
+    },
+  ];
+
+  const mgmtTabs = [
+    {
+      value: "projects",
+      icon: FileText,
+      label: "विकास कामे",
+      badge: false,
+      ocid: "admin.projects.tab",
+    },
+    {
+      value: "schemes",
+      icon: BookOpen,
+      label: "योजना",
+      badge: false,
+      ocid: "admin.schemes.tab",
+    },
+    {
+      value: "civic",
+      icon: Building2,
+      label: "नागरी सेवा",
+      badge: false,
+      ocid: "admin.civic.tab",
+    },
+    {
+      value: "team",
+      icon: Users,
+      label: "टीम",
+      badge: false,
+      ocid: "admin.team.tab",
+    },
+    {
+      value: "ratings",
+      icon: Star,
+      label: "रेटिंग",
+      badge: false,
+      ocid: "admin.ratings.tab",
+    },
+  ];
+
+  const isPrimary = primaryTabs.some((t) => t.value === activeTab);
 
   return (
-    <Tabs defaultValue="grievances">
-      <TabsList
-        className="w-full mb-6 rounded-xl p-1 h-auto flex-wrap gap-1"
-        style={{ background: "oklch(0.28 0.04 243 / 0.08)" }}
-      >
-        <TabsTrigger
-          value="grievances"
-          data-ocid="admin.grievances.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white relative"
-        >
-          <MessageSquare size={13} />
-          <span>तक्रारी</span>
-          {grievanceBadge && (
-            <span
-              className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-              style={{ background: "oklch(0.55 0.25 25)" }}
-            />
-          )}
-        </TabsTrigger>
-        <TabsTrigger
-          value="gallery"
-          data-ocid="admin.gallery.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Image size={13} />
-          <span>गॅलरी</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="photos"
-          data-ocid="admin.photos.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Camera size={13} />
-          <span>फोटो</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="projects"
-          data-ocid="admin.projects.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <FileText size={13} />
-          <span className="hidden sm:inline">विकास कामे</span>
-          <span className="sm:hidden">कामे</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="schemes"
-          data-ocid="admin.schemes.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <BookOpen size={13} />
-          <span>योजना</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="civic"
-          data-ocid="admin.civic.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Building2 size={13} />
-          <span className="hidden sm:inline">नागरी सेवा</span>
-          <span className="sm:hidden">सेवा</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="team"
-          data-ocid="admin.team.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Users size={13} />
-          <span>टीम</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="ratings"
-          data-ocid="admin.ratings.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Star size={13} />
-          <span>रेटिंग</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="notifications"
-          data-ocid="admin.notifications.tab"
-          className="flex-1 min-w-0 h-9 rounded-lg font-body font-semibold text-xs gap-1.5 data-[state=active]:text-white"
-        >
-          <Bell size={13} />
-          <span>सूचना</span>
-        </TabsTrigger>
-      </TabsList>
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      {/* ── Tab Navigation ──────────────────────────────────────── */}
+      <div className="mb-6 space-y-3">
+        {/* Primary group */}
+        <div>
+          <p
+            className="font-body text-xs font-bold mb-2 px-1"
+            style={{ color: "oklch(0.52 0.20 43)" }}
+          >
+            📋 दैनंदिन
+          </p>
+          <div
+            className="flex gap-2 overflow-x-auto pb-1"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {primaryTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  data-ocid={tab.ocid}
+                  onClick={() => setActiveTab(tab.value)}
+                  className="relative flex items-center gap-2 px-4 py-3 rounded-xl font-body font-semibold text-sm whitespace-nowrap transition-all duration-200 shrink-0"
+                  style={
+                    isActive
+                      ? {
+                          background: "oklch(0.65 0.22 43)",
+                          color: "white",
+                          boxShadow: "0 2px 12px oklch(0.65 0.22 43 / 0.40)",
+                        }
+                      : {
+                          background: "oklch(0.97 0.005 43)",
+                          color: "oklch(0.40 0.06 43)",
+                          border: "1.5px solid oklch(0.88 0.04 43)",
+                        }
+                  }
+                >
+                  <Icon size={16} />
+                  <span>{tab.label}</span>
+                  {tab.badge && (
+                    <span
+                      className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                      style={{ background: "oklch(0.55 0.25 25)" }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
+        {/* Management group */}
+        <div>
+          <p
+            className="font-body text-xs font-bold mb-2 px-1"
+            style={{ color: "oklch(0.40 0.04 243)" }}
+          >
+            ⚙️ व्यवस्थापन
+          </p>
+          <div
+            className="flex gap-2 overflow-x-auto pb-1"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {mgmtTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  data-ocid={tab.ocid}
+                  onClick={() => setActiveTab(tab.value)}
+                  className="relative flex items-center gap-2 px-4 py-3 rounded-xl font-body font-semibold text-sm whitespace-nowrap transition-all duration-200 shrink-0"
+                  style={
+                    isActive
+                      ? {
+                          background: "oklch(0.28 0.04 243)",
+                          color: "white",
+                          boxShadow: "0 2px 12px oklch(0.28 0.04 243 / 0.35)",
+                        }
+                      : {
+                          background: "oklch(0.96 0.008 243)",
+                          color: "oklch(0.38 0.04 243)",
+                          border: "1.5px solid oklch(0.88 0.02 243)",
+                        }
+                  }
+                >
+                  <Icon size={16} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tab Content Panel ────────────────────────────────────── */}
       <div
         className="rounded-2xl p-6 shadow-sm border"
         style={{
           background: "white",
-          borderColor: "oklch(0.28 0.04 243 / 0.08)",
+          borderColor: isPrimary
+            ? "oklch(0.65 0.22 43 / 0.12)"
+            : "oklch(0.28 0.04 243 / 0.08)",
         }}
       >
         <TabsContent value="grievances" className="mt-0">
           <GrievancesTab />
         </TabsContent>
+        <TabsContent value="photos" className="mt-0">
+          <SitePhotosTab />
+        </TabsContent>
         <TabsContent value="gallery" className="mt-0">
           <GalleryTab />
         </TabsContent>
-        <TabsContent value="photos" className="mt-0">
-          <SitePhotosTab />
+        <TabsContent value="hd-gallery" className="mt-0">
+          <HDGalleryTab />
+        </TabsContent>
+        <TabsContent value="notifications" className="mt-0">
+          <NotificationsTab />
         </TabsContent>
         <TabsContent value="projects" className="mt-0">
           <ProjectsTab />
@@ -2964,9 +3723,6 @@ function DashboardTabs() {
         </TabsContent>
         <TabsContent value="ratings" className="mt-0">
           <RatingsTab />
-        </TabsContent>
-        <TabsContent value="notifications" className="mt-0">
-          <NotificationsTab />
         </TabsContent>
       </div>
     </Tabs>

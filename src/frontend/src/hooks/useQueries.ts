@@ -481,10 +481,17 @@ export function useAddGalleryPhoto() {
       sub: string;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addGalleryPhoto(url, caption, sub);
+      const id = await actor.addGalleryPhoto(url, caption, sub);
+      // Auto-notify citizens when admin adds a photo
+      actor
+        .addNotification("नवीन फोटो जोडला", "गॅलरीत नवीन फोटो जोडण्यात आला आहे.")
+        .catch(() => {});
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["galleryPhotos"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
     },
   });
 }
@@ -519,10 +526,20 @@ export function useAddProject() {
       status: string;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addProject(title, description, category, status);
+      const id = await actor.addProject(title, description, category, status);
+      // Auto-notify citizens when admin adds a project
+      actor
+        .addNotification(
+          "नवीन विकास काम जोडले",
+          "प्रभाग क्र. ८ मध्ये नवीन विकास काम सुरू झाले आहे.",
+        )
+        .catch(() => {});
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
     },
   });
 }
@@ -573,7 +590,7 @@ export function useAddScheme() {
       eligibility: string;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addScheme(
+      const id = await actor.addScheme(
         title,
         description,
         category,
@@ -581,9 +598,19 @@ export function useAddScheme() {
         benefit,
         eligibility,
       );
+      // Auto-notify citizens when admin adds a scheme
+      actor
+        .addNotification(
+          "नवीन सरकारी योजना",
+          "नवीन शासकीय योजना उपलब्ध झाली आहे.",
+        )
+        .catch(() => {});
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schemes"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
     },
   });
 }
@@ -852,6 +879,76 @@ export function useMarkGrievancesRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["unreadGrievanceCount"] });
+    },
+  });
+}
+
+// ─── Grievance Replies (localStorage-backed) ──────────────────────────────────
+
+export interface GrievanceReply {
+  reply: string;
+  repliedAt: number;
+}
+
+const GRIEVANCE_REPLIES_KEY = "kmc_grievance_replies_v1";
+
+function loadGrievanceReplies(): Record<string, GrievanceReply> {
+  try {
+    const raw = localStorage.getItem(GRIEVANCE_REPLIES_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, GrievanceReply>;
+  } catch {
+    return {};
+  }
+}
+
+function saveGrievanceReply(id: string, reply: GrievanceReply): void {
+  const existing = loadGrievanceReplies();
+  existing[id] = reply;
+  localStorage.setItem(GRIEVANCE_REPLIES_KEY, JSON.stringify(existing));
+}
+
+export function useGetGrievanceReplies() {
+  return useQuery<Record<string, GrievanceReply>>({
+    queryKey: ["grievanceReplies"],
+    queryFn: async () => loadGrievanceReplies(),
+    staleTime: 0,
+  });
+}
+
+export function useReplyToGrievance() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      reply,
+      citizenName,
+    }: {
+      id: string;
+      reply: string;
+      citizenName: string;
+    }) => {
+      const replyData: GrievanceReply = {
+        reply,
+        repliedAt: Date.now(),
+      };
+      saveGrievanceReply(id, replyData);
+      // Fire-and-forget notification to citizen
+      if (actor) {
+        actor
+          .addNotification(
+            `तक्रार उत्तर: ${citizenName}`,
+            `तुमच्या तक्रारीला उत्तर आले आहे: ${reply.substring(0, 100)}`,
+          )
+          .catch(() => {});
+      }
+      return replyData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["grievanceReplies"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
     },
   });
 }
