@@ -1,4 +1,4 @@
-import { Bell, X } from "lucide-react";
+import { Bell, BellOff, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -17,9 +17,59 @@ function formatTime(timestamp: bigint): string {
   });
 }
 
+// ─── Service Worker Registration ───────────────────────────────────────────────
+
+async function getSwRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+  try {
+    const reg = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+    });
+    await navigator.serviceWorker.ready;
+    return reg;
+  } catch {
+    return null;
+  }
+}
+
+async function showSwNotification(
+  title: string,
+  body: string,
+  icon: string,
+): Promise<void> {
+  // Prefer ServiceWorkerRegistration.showNotification — persists in OS bar
+  const reg = await getSwRegistration();
+  if (reg) {
+    try {
+      // Cast to allow vibrate (non-standard but widely supported on Android)
+      const opts: NotificationOptions & { vibrate?: number[] } = {
+        body,
+        icon,
+        badge: icon,
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+        tag: "khedkar-notification",
+      };
+      await reg.showNotification(title, opts);
+      return;
+    } catch {
+      // fall through to basic Notification
+    }
+  }
+  // Fallback: basic Notification (foreground only)
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body, icon });
+  }
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────────
+
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
   const panelRef = useRef<HTMLDivElement>(null);
+  const lastNotifiedIdRef = useRef<string | null>(null);
 
   const { data: unreadCount = 0n } = useGetUnreadNotificationCount();
   const { data: notifications = [], refetch } = useGetAllNotifications();
@@ -27,7 +77,57 @@ export default function NotificationBell() {
 
   const count = Number(unreadCount);
 
-  // Close on outside click
+  // ── Register service worker and get permission on mount ──────────────────────
+  useEffect(() => {
+    // Register SW early
+    getSwRegistration().catch(() => {});
+
+    // Get current permission state
+    if ("Notification" in window) {
+      setPermission(Notification.permission);
+    }
+  }, []);
+
+  // ── Request notification permission proactively on first visit ───────────────
+  useEffect(() => {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "default") return;
+
+    // Small delay so it doesn't feel jarring on first load
+    const timer = setTimeout(async () => {
+      const result = await Notification.requestPermission();
+      setPermission(result);
+      // Register SW after permission granted
+      if (result === "granted") {
+        getSwRegistration().catch(() => {});
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // ── Send OS notification when new unread items appear ────────────────────────
+  useEffect(() => {
+    if (count === 0 || permission !== "granted") return;
+
+    const sorted = [...notifications].sort(
+      (a, b) => Number(b.timestamp) - Number(a.timestamp),
+    );
+    const latest = sorted[0];
+    if (!latest) return;
+
+    const latestId = String(latest.id);
+    if (latestId === lastNotifiedIdRef.current) return;
+    lastNotifiedIdRef.current = latestId;
+
+    showSwNotification(
+      latest.title,
+      latest.body,
+      "/assets/uploads/IMG-20260301-WA0009-1.jpg",
+    ).catch(() => {});
+  }, [count, notifications, permission]);
+
+  // ── Close on outside click ────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
@@ -42,34 +142,21 @@ export default function NotificationBell() {
   const handleOpen = () => {
     setOpen((v) => !v);
     if (!open) {
-      // Refetch + mark all read
       refetch();
       if (count > 0) {
         markAllRead();
-        // Try browser notifications
-        if ("Notification" in window && Notification.permission === "default") {
-          Notification.requestPermission();
-        }
       }
     }
   };
 
-  // Send browser notifications for unread items
-  useEffect(() => {
-    if (count === 0 || !("Notification" in window)) return;
-    if (Notification.permission !== "granted") return;
-
-    const sorted = [...notifications].sort(
-      (a, b) => Number(b.timestamp) - Number(a.timestamp),
-    );
-    const latest = sorted[0];
-    if (latest) {
-      new Notification(latest.title, {
-        body: latest.body,
-        icon: "/assets/uploads/IMG-20260301-WA0009-1.jpg",
-      });
+  const handleRequestPermission = async () => {
+    if (!("Notification" in window)) return;
+    const result = await Notification.requestPermission();
+    setPermission(result);
+    if (result === "granted") {
+      getSwRegistration().catch(() => {});
     }
-  }, [count, notifications]);
+  };
 
   const sorted = [...notifications].sort(
     (a, b) => Number(b.timestamp) - Number(a.timestamp),
@@ -148,6 +235,61 @@ export default function NotificationBell() {
                 <X size={14} />
               </button>
             </div>
+
+            {/* Permission prompt */}
+            {permission === "default" && (
+              <div
+                className="px-4 py-3 border-b flex items-center justify-between gap-3"
+                style={{
+                  background: "oklch(0.65 0.22 43 / 0.06)",
+                  borderColor: "oklch(0.65 0.22 43 / 0.15)",
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <BellOff
+                    size={14}
+                    style={{ color: "oklch(0.52 0.20 43)", flexShrink: 0 }}
+                  />
+                  <p
+                    className="font-body text-xs leading-tight"
+                    style={{ color: "oklch(0.38 0.06 43)" }}
+                  >
+                    मोबाईल सूचना चालू करा
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRequestPermission}
+                  data-ocid="notifications.toggle"
+                  className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold font-display text-white"
+                  style={{ background: "oklch(0.52 0.20 43)" }}
+                >
+                  चालू करा
+                </button>
+              </div>
+            )}
+
+            {/* Permission denied message */}
+            {permission === "denied" && (
+              <div
+                className="px-4 py-2 border-b flex items-center gap-2"
+                style={{
+                  background: "oklch(0.55 0.25 25 / 0.06)",
+                  borderColor: "oklch(0.55 0.25 25 / 0.12)",
+                }}
+              >
+                <BellOff
+                  size={13}
+                  style={{ color: "oklch(0.55 0.25 25)", flexShrink: 0 }}
+                />
+                <p
+                  className="font-body text-xs"
+                  style={{ color: "oklch(0.45 0.20 25)" }}
+                >
+                  सूचना ब्राउझर सेटिंग्समधून चालू करा
+                </p>
+              </div>
+            )}
 
             {/* Notification list */}
             <div className="overflow-y-auto" style={{ maxHeight: "320px" }}>

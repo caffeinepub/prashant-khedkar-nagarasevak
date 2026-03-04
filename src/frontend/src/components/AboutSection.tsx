@@ -1,4 +1,4 @@
-import { Award, MapPin, Users } from "lucide-react";
+import { Award, Camera, MapPin, Users } from "lucide-react";
 import { motion } from "motion/react";
 import { useSitePhoto } from "../hooks/useSitePhoto";
 
@@ -70,25 +70,34 @@ export default function AboutSection() {
                 style={{ background: "oklch(0.28 0.04 243)", opacity: 0.15 }}
               />
               <div className="relative w-72 md:w-80 h-80 md:h-96 rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src={photoSrc}
-                  alt="नगरसेवक प्रशांत उर्फ भैय्या खेडकर"
-                  className="w-full h-full object-cover object-top"
-                  style={{ display: "block" }}
-                  onError={(e) => {
-                    const el = e.currentTarget as HTMLImageElement;
-                    el.style.display = "none";
-                    const parent = el.parentElement;
-                    if (parent) {
-                      parent.style.background = "oklch(0.65 0.22 43 / 0.12)";
-                      parent.style.display = "flex";
-                      parent.style.alignItems = "center";
-                      parent.style.justifyContent = "center";
-                      parent.innerHTML =
-                        '<div style="width:100%;height:100%;background:oklch(0.65 0.22 43/0.10);display:flex;align-items:center;justify-content:center;border-radius:1rem;"><p style="color:oklch(0.52 0.20 43);font-weight:bold;font-size:0.875rem;text-align:center;">भैय्या खेडकर</p></div>';
-                    }
-                  }}
-                />
+                {photoSrc ? (
+                  <img
+                    src={photoSrc}
+                    alt="नगरसेवक प्रशांत उर्फ भैय्या खेडकर"
+                    className="w-full h-full object-cover object-top"
+                    style={{ display: "block" }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex flex-col items-center justify-center gap-3"
+                    style={{ background: "oklch(0.65 0.22 43 / 0.08)" }}
+                  >
+                    <Camera
+                      size={40}
+                      style={{ color: "oklch(0.65 0.22 43 / 0.45)" }}
+                    />
+                    <p
+                      className="font-body text-sm font-semibold text-center px-4"
+                      style={{ color: "oklch(0.55 0.20 43 / 0.70)" }}
+                    >
+                      Admin पॅनेलमधून फोटो जोडा
+                    </p>
+                  </div>
+                )}
               </div>
               {/* Floating badge */}
               <div

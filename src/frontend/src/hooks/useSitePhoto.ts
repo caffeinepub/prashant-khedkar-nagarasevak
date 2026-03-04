@@ -1,10 +1,9 @@
 import { useGetSitePhoto } from "./useQueries";
 
-const FALLBACK_PHOTO = "/assets/uploads/IMG-20260301-WA0009-1.jpg";
-
 /**
- * Returns the site photo from backend (base64 data URL) or falls back to the
- * local upload path.
+ * Returns the site photo from backend (base64 data URL).
+ * Returns empty string when no photo has been set — components must handle
+ * this gracefully with a placeholder instead of a broken image.
  */
 export function useSitePhoto(photoKey: "navbar" | "hero" | "about"): {
   photoSrc: string;
@@ -12,7 +11,9 @@ export function useSitePhoto(photoKey: "navbar" | "hero" | "about"): {
 } {
   const { data, isLoading } = useGetSitePhoto(photoKey);
 
-  const photoSrc = data && data.trim().length > 0 ? data : FALLBACK_PHOTO;
+  // Return empty string when no photo set — never fall back to local file paths
+  // that may not exist; components render their own placeholders
+  const photoSrc = data && data.trim().length > 0 ? data : "";
 
   return { photoSrc, isLoading };
 }

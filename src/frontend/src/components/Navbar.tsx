@@ -1,4 +1,4 @@
-import { Menu, Phone, Share2, X } from "lucide-react";
+import { Camera, Menu, Phone, Share2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useSitePhoto } from "../hooks/useSitePhoto";
@@ -172,7 +172,7 @@ export default function Navbar() {
                 >
                   भ
                 </div>
-              ) : (
+              ) : photoSrc ? (
                 <img
                   src={photoSrc}
                   alt="भैय्या खेडकर"
@@ -181,13 +181,19 @@ export default function Navbar() {
                   onError={(e) => {
                     const el = e.currentTarget as HTMLImageElement;
                     el.style.display = "none";
-                    const parent = el.parentElement;
-                    if (parent) {
-                      parent.innerHTML =
-                        '<div style="height:2.5rem;width:2.5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;background:oklch(0.65 0.22 43);color:white;font-weight:bold;font-size:1rem;flex-shrink:0;border:2px solid oklch(0.65 0.22 43)">भ</div>';
-                    }
                   }}
                 />
+              ) : (
+                <div
+                  className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 border-2"
+                  style={{
+                    borderColor: "oklch(0.65 0.22 43 / 0.50)",
+                    background: "oklch(0.95 0.01 43)",
+                  }}
+                  title="Admin पॅनेलमधून फोटो जोडा"
+                >
+                  <Camera size={18} style={{ color: "oklch(0.65 0.22 43)" }} />
+                </div>
               )}
               <div className="flex flex-col leading-tight">
                 <span

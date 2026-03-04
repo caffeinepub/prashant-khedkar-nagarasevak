@@ -167,27 +167,30 @@ export default function HeroSection() {
       />
 
       {/* Bhaiya Khedkar Portrait - right side (desktop only) */}
-      <motion.div
-        initial={{ opacity: 0, x: 60 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-        className="absolute right-0 bottom-0 z-10 hidden md:block"
-        style={{ height: "90%", maxHeight: "700px" }}
-      >
-        <img
-          src={photoSrc}
-          alt="नगरसेवक भैय्या खेडकर"
-          className="h-full w-auto object-cover object-top"
-          style={{
-            WebkitMaskImage:
-              "linear-gradient(to left, black 55%, transparent 100%)",
-            maskImage: "linear-gradient(to left, black 55%, transparent 100%)",
-          }}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.display = "none";
-          }}
-        />
-      </motion.div>
+      {photoSrc && (
+        <motion.div
+          initial={{ opacity: 0, x: 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+          className="absolute right-0 bottom-0 z-10 hidden md:block"
+          style={{ height: "90%", maxHeight: "700px" }}
+        >
+          <img
+            src={photoSrc}
+            alt="नगरसेवक भैय्या खेडकर"
+            className="h-full w-auto object-cover object-top"
+            style={{
+              WebkitMaskImage:
+                "linear-gradient(to left, black 55%, transparent 100%)",
+              maskImage:
+                "linear-gradient(to left, black 55%, transparent 100%)",
+            }}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        </motion.div>
+      )}
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 py-24 mt-16 md:text-left md:pl-16 md:max-w-2xl">
@@ -200,24 +203,25 @@ export default function HeroSection() {
         >
           <div className="relative">
             <div
-              className="w-32 h-32 rounded-full overflow-hidden border-4 shadow-2xl"
-              style={{ borderColor: "oklch(0.65 0.22 43)" }}
+              className="w-32 h-32 rounded-full overflow-hidden border-4 shadow-2xl flex items-center justify-center"
+              style={{
+                borderColor: "oklch(0.65 0.22 43)",
+                background: photoSrc
+                  ? "transparent"
+                  : "oklch(0.65 0.22 43 / 0.15)",
+              }}
             >
-              <img
-                src={photoSrc}
-                alt="नगरसेवक भैय्या खेडकर"
-                className="w-full h-full object-cover object-top"
-                onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement;
-                  el.style.display = "none";
-                  const parent = el.parentElement;
-                  if (parent) {
-                    parent.style.background = "oklch(0.65 0.22 43 / 0.15)";
-                    parent.innerHTML =
-                      '<div style="width:100%;height:100%;background:oklch(0.65 0.22 43/0.15);display:flex;align-items:center;justify-content:center;border-radius:9999px;"></div>';
-                  }
-                }}
-              />
+              {photoSrc ? (
+                <img
+                  src={photoSrc}
+                  alt="नगरसेवक भैय्या खेडकर"
+                  className="w-full h-full object-cover object-top"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display =
+                      "none";
+                  }}
+                />
+              ) : null}
             </div>
             <div
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-white font-bold text-xs shadow-lg whitespace-nowrap"

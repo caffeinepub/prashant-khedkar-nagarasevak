@@ -219,7 +219,12 @@ function GrievanceCard({
     timestamp: bigint;
   };
   reply?: { reply: string; repliedAt: number };
-  onReply: (id: string, citizenName: string, text: string) => Promise<void>;
+  onReply: (
+    id: string,
+    citizenName: string,
+    citizenMobile: string,
+    text: string,
+  ) => Promise<void>;
 }) {
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -249,7 +254,7 @@ function GrievanceCard({
     if (!replyText.trim()) return;
     setIsSending(true);
     try {
-      await onReply(String(g.id), g.name, replyText.trim());
+      await onReply(String(g.id), g.name, g.mobile, replyText.trim());
       setReplyText("");
       setShowReplyBox(false);
       toast.success("उत्तर पाठवले! नागरिकांना सूचना गेली.");
@@ -435,8 +440,13 @@ function GrievancesTab() {
     markGrievancesReadFn();
   }, [markGrievancesReadFn]);
 
-  const handleReply = async (id: string, citizenName: string, text: string) => {
-    await replyToGrievance({ id, reply: text, citizenName });
+  const handleReply = async (
+    id: string,
+    citizenName: string,
+    citizenMobile: string,
+    text: string,
+  ) => {
+    await replyToGrievance({ id, reply: text, citizenName, citizenMobile });
   };
 
   if (isLoading) {
@@ -2692,7 +2702,7 @@ function SitePhotoSection({
   const currentSrc =
     currentPhotoData && currentPhotoData.trim().length > 0
       ? currentPhotoData
-      : "/assets/uploads/IMG-20260301-WA0009-1.jpg";
+      : "";
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2761,7 +2771,7 @@ function SitePhotoSection({
                 style={{ color: "oklch(0.65 0.22 43)" }}
               />
             </div>
-          ) : (
+          ) : currentSrc ? (
             <img
               src={currentSrc}
               alt={label}
@@ -2771,6 +2781,25 @@ function SitePhotoSection({
                 (e.currentTarget as HTMLImageElement).style.display = "none";
               }}
             />
+          ) : (
+            <div
+              className="w-full h-32 rounded-xl flex flex-col items-center justify-center gap-2 border-2 border-dashed"
+              style={{
+                borderColor: "oklch(0.65 0.22 43 / 0.25)",
+                background: "oklch(0.65 0.22 43 / 0.04)",
+              }}
+            >
+              <Camera
+                size={24}
+                style={{ color: "oklch(0.65 0.22 43 / 0.40)" }}
+              />
+              <p
+                className="font-body text-xs text-center px-2"
+                style={{ color: "oklch(0.55 0.20 43 / 0.60)" }}
+              >
+                अजून फोटो जोडलेला नाही
+              </p>
+            </div>
           )}
         </div>
 
@@ -2882,31 +2911,55 @@ function SitePhotoSection({
 function SitePhotosTab() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h3
           className="font-display font-bold text-lg"
           style={{ color: "oklch(0.28 0.04 243)" }}
         >
           वेबसाइट फोटो व्यवस्थापन
         </h3>
+        <p
+          className="font-body text-sm mt-1"
+          style={{ color: "oklch(0.45 0.03 243)" }}
+        >
+          खाली दिलेल्या विभागांमधील फोटो थेट मोबाईल गॅलरीतून अपलोड करा. फोटो जतन
+          केल्यावर वेबसाइटवर लगेच दिसतील.
+        </p>
       </div>
-      <p
-        className="font-body text-sm"
-        style={{ color: "oklch(0.45 0.03 243)" }}
-      >
-        खाली दिलेल्या विभागांमधील फोटो थेट मोबाईल गॅलरीतून अपलोड करा. फोटो जतन केल्यावर
-        वेबसाइटवर लगेच दिसतील.
-      </p>
 
-      <SitePhotoSection
-        photoKey="navbar"
-        label="Navbar आयकॉन फोटो"
-        description="नेव्हिगेशन बारमध्ये डाव्या बाजूला दिसणारा गोल आयकॉन फोटो."
-      />
+      {/* Navbar icon — highlighted as most important */}
+      <div
+        className="rounded-2xl p-4 border-2"
+        style={{
+          borderColor: "oklch(0.65 0.22 43 / 0.50)",
+          background: "oklch(0.65 0.22 43 / 0.06)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold font-body text-white"
+            style={{ background: "oklch(0.65 0.22 43)" }}
+          >
+            ⭐ मुख्य आयकॉन
+          </span>
+          <p
+            className="font-body text-xs font-semibold"
+            style={{ color: "oklch(0.52 0.20 43)" }}
+          >
+            Navbar च्या डाव्या बाजूला दिसणारा गोल फोटो
+          </p>
+        </div>
+        <SitePhotoSection
+          photoKey="navbar"
+          label="Navbar आयकॉन फोटो"
+          description="वेबसाइटच्या वरच्या भागात (navbar) डाव्या बाजूला दिसणारा गोल आयकॉन. येथे भैय्या खेडकर यांचा फोटो गॅलरीतून अपलोड करा."
+        />
+      </div>
+
       <SitePhotoSection
         photoKey="hero"
         label="Hero Portrait फोटो"
-        description="मुख्यपृष्ठावर उजव्या बाजूला दिसणारा मोठा portrait फोटो."
+        description="मुख्यपृष्ठावर (Hero section) उजव्या बाजूला दिसणारा मोठा portrait फोटो."
       />
       <SitePhotoSection
         photoKey="about"
@@ -3148,358 +3201,6 @@ function NotificationsTab() {
   );
 }
 
-// ─── HD Gallery Tab ───────────────────────────────────────────────────────────
-
-function HDGalleryTab() {
-  const { data: allPhotos = [], isLoading } = useGetAllGalleryPhotos();
-  const { mutateAsync: addPhoto, isPending: isAdding } = useAddGalleryPhoto();
-  const { mutateAsync: deletePhoto, isPending: isDeleting } =
-    useDeleteGalleryPhoto();
-  const [deletingId, setDeletingId] = useState<bigint | null>(null);
-
-  const hdPhotos = allPhotos.filter((p) => p.sub === "hd");
-
-  const [caption, setCaption] = useState("");
-  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [urlFallback, setUrlFallback] = useState("");
-  const hdFileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsProcessing(true);
-    try {
-      const resized = await resizeImageFile(file);
-      setPreviewSrc(resized);
-      setUrlFallback("");
-    } catch {
-      toast.error("फोटो प्रक्रिया करताना चूक झाली.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const clearFile = () => {
-    setPreviewSrc(null);
-    if (hdFileInputRef.current) hdFileInputRef.current.value = "";
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const finalUrl = previewSrc || urlFallback.trim();
-    if (!finalUrl || !caption.trim()) {
-      toast.error("कृपया फोटो निवडा आणि शीर्षक भरा.");
-      return;
-    }
-    try {
-      await addPhoto({ url: finalUrl, caption: caption.trim(), sub: "hd" });
-      toast.success("HD फोटो यशस्वीरित्या जोडला!");
-      setCaption("");
-      setPreviewSrc(null);
-      setUrlFallback("");
-      if (hdFileInputRef.current) hdFileInputRef.current.value = "";
-    } catch {
-      toast.error("काहीतरी चूक झाली.");
-    }
-  };
-
-  const handleDelete = async (id: bigint) => {
-    setDeletingId(id);
-    try {
-      await deletePhoto(id);
-      toast.success("HD फोटो हटवला.");
-    } catch {
-      toast.error("फोटो हटवता आला नाही.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3
-          className="font-display font-bold text-lg mb-1"
-          style={{ color: "oklch(0.28 0.04 243)" }}
-        >
-          HD फोटो विभाग
-        </h3>
-        <p
-          className="font-body text-sm"
-          style={{ color: "oklch(0.50 0.03 243)" }}
-        >
-          येथे जोडलेले फोटो वेबसाइटवर "भैय्या खेडकर - विशेष फोटो" विभागात दिसतील.
-        </p>
-      </div>
-
-      {/* Add form */}
-      <div
-        className="rounded-2xl p-6 border"
-        style={{
-          borderColor: "oklch(0.65 0.22 43 / 0.20)",
-          background: "oklch(0.65 0.22 43 / 0.04)",
-        }}
-      >
-        <h4
-          className="font-display font-bold text-base mb-4"
-          style={{ color: "oklch(0.28 0.04 243)" }}
-        >
-          नवीन HD फोटो जोडा
-        </h4>
-        <form onSubmit={handleAdd} className="space-y-4">
-          {/* Gallery upload */}
-          <div className="space-y-2">
-            <Label
-              className="font-body text-sm font-semibold"
-              style={{ color: "oklch(0.28 0.04 243)" }}
-            >
-              📷 गॅलरीतून HD फोटो निवडा
-            </Label>
-            <input
-              ref={hdFileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-              id="hd-gallery-photo-upload"
-            />
-            {previewSrc ? (
-              <div
-                className="relative rounded-xl overflow-hidden border-2"
-                style={{ borderColor: "oklch(0.65 0.22 43)" }}
-              >
-                <img
-                  src={previewSrc}
-                  alt="निवडलेला फोटो"
-                  className="w-full h-52 object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={clearFile}
-                  className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md"
-                  style={{ background: "oklch(0.45 0.20 25)" }}
-                >
-                  <X size={15} />
-                </button>
-                <div
-                  className="absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-body font-semibold text-white"
-                  style={{ background: "oklch(0.40 0.16 150 / 0.90)" }}
-                >
-                  ✓ HD फोटो निवडला
-                </div>
-              </div>
-            ) : (
-              <label
-                htmlFor="hd-gallery-photo-upload"
-                className="block cursor-pointer"
-                data-ocid="admin.hd-gallery.upload_button"
-              >
-                <div
-                  className="w-full h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 hover:opacity-80"
-                  style={{
-                    borderColor: "oklch(0.65 0.22 43 / 0.40)",
-                    background: "oklch(0.65 0.22 43 / 0.04)",
-                  }}
-                >
-                  {isProcessing ? (
-                    <Loader2
-                      size={24}
-                      className="animate-spin"
-                      style={{ color: "oklch(0.65 0.22 43)" }}
-                    />
-                  ) : (
-                    <>
-                      <Camera
-                        size={28}
-                        style={{ color: "oklch(0.65 0.22 43)" }}
-                      />
-                      <p
-                        className="font-body text-sm font-semibold"
-                        style={{ color: "oklch(0.52 0.20 43)" }}
-                      >
-                        येथे टॅप करा — गॅलरी / कॅमेरा
-                      </p>
-                      <p
-                        className="font-body text-xs"
-                        style={{ color: "oklch(0.60 0.02 243)" }}
-                      >
-                        हा फोटो HD विभागात दिसेल
-                      </p>
-                    </>
-                  )}
-                </div>
-              </label>
-            )}
-          </div>
-
-          {/* URL fallback */}
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="hd-url-fallback"
-              className="font-body text-xs font-semibold flex items-center gap-1.5"
-              style={{ color: "oklch(0.45 0.02 243)" }}
-            >
-              <Upload size={11} />
-              किंवा URL टाका
-            </Label>
-            <Input
-              id="hd-url-fallback"
-              type="url"
-              placeholder="https://example.com/photo.jpg"
-              value={urlFallback}
-              onChange={(e) => {
-                setUrlFallback(e.target.value);
-                if (e.target.value) clearFile();
-              }}
-              disabled={!!previewSrc}
-              className="h-10 rounded-lg font-body text-sm"
-              style={{ opacity: previewSrc ? 0.45 : 1 }}
-            />
-          </div>
-
-          {/* Caption */}
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="hd-caption"
-              className="font-body text-sm font-semibold"
-              style={{ color: "oklch(0.28 0.04 243)" }}
-            >
-              शीर्षक *
-            </Label>
-            <Input
-              id="hd-caption"
-              type="text"
-              placeholder="उदा. प्रभाग क्र. ८ दौरा"
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              required
-              className="h-10 rounded-lg font-body text-sm"
-              data-ocid="admin.hd-gallery.input"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={
-              isAdding ||
-              isProcessing ||
-              (!previewSrc && !urlFallback.trim()) ||
-              !caption.trim()
-            }
-            className="h-10 px-6 rounded-xl font-display font-bold text-sm text-white"
-            style={{ background: "oklch(0.65 0.22 43)" }}
-            data-ocid="admin.hd-gallery.submit_button"
-          >
-            {isAdding ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                जोडत आहे...
-              </>
-            ) : (
-              "HD फोटो जोडा"
-            )}
-          </Button>
-        </form>
-      </div>
-
-      {/* HD Photos list */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h4
-            className="font-display font-bold text-base"
-            style={{ color: "oklch(0.28 0.04 243)" }}
-          >
-            सध्याचे HD फोटो
-          </h4>
-          <span
-            className="px-3 py-1 rounded-full text-xs font-bold font-body"
-            style={{
-              background: "oklch(0.28 0.04 243 / 0.08)",
-              color: "oklch(0.28 0.04 243)",
-            }}
-          >
-            एकूण: {hdPhotos.length}
-          </span>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2
-              className="animate-spin"
-              size={28}
-              style={{ color: "oklch(0.65 0.22 43)" }}
-            />
-          </div>
-        ) : hdPhotos.length === 0 ? (
-          <div
-            className="rounded-2xl p-10 text-center border"
-            data-ocid="admin.hd-gallery.empty_state"
-            style={{
-              borderColor: "oklch(0.28 0.04 243 / 0.10)",
-              background: "oklch(0.97 0.005 243)",
-            }}
-          >
-            <Image
-              size={36}
-              className="mx-auto mb-3 opacity-30"
-              style={{ color: "oklch(0.28 0.04 243)" }}
-            />
-            <p
-              className="font-body text-sm"
-              style={{ color: "oklch(0.28 0.04 243 / 0.50)" }}
-            >
-              अजून कोणताही HD फोटो जोडलेला नाही
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {hdPhotos.map((photo) => (
-              <div
-                key={String(photo.id)}
-                className="relative rounded-xl overflow-hidden border group"
-                style={{ borderColor: "oklch(0.28 0.04 243 / 0.10)" }}
-              >
-                <img
-                  src={photo.url}
-                  alt={photo.caption}
-                  className="w-full h-28 object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-                <div className="p-2 flex items-center justify-between gap-1">
-                  <p
-                    className="font-body text-xs font-semibold truncate flex-1"
-                    style={{ color: "oklch(0.28 0.04 243)" }}
-                  >
-                    {photo.caption}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={isDeleting && deletingId === photo.id}
-                    onClick={() => handleDelete(photo.id)}
-                    className="shrink-0 h-7 w-7 p-0 rounded-lg hover:bg-red-50"
-                    style={{ color: "oklch(0.55 0.20 25)" }}
-                    data-ocid="admin.hd-gallery.delete_button"
-                  >
-                    {isDeleting && deletingId === photo.id ? (
-                      <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                      <Trash2 size={12} />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Dashboard Tabs (grouped, simplified layout) ──────────────────────────────
 
 function DashboardTabs() {
@@ -3528,13 +3229,6 @@ function DashboardTabs() {
       label: "गॅलरी",
       badge: false,
       ocid: "admin.gallery.tab",
-    },
-    {
-      value: "hd-gallery",
-      icon: Image,
-      label: "HD फोटो",
-      badge: false,
-      ocid: "admin.hd-gallery.tab",
     },
     {
       value: "notifications",
@@ -3702,9 +3396,6 @@ function DashboardTabs() {
         </TabsContent>
         <TabsContent value="gallery" className="mt-0">
           <GalleryTab />
-        </TabsContent>
-        <TabsContent value="hd-gallery" className="mt-0">
-          <HDGalleryTab />
         </TabsContent>
         <TabsContent value="notifications" className="mt-0">
           <NotificationsTab />

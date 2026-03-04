@@ -924,24 +924,24 @@ export function useReplyToGrievance() {
       id,
       reply,
       citizenName,
+      citizenMobile,
     }: {
       id: string;
       reply: string;
       citizenName: string;
+      citizenMobile: string;
     }) => {
       const replyData: GrievanceReply = {
         reply,
         repliedAt: Date.now(),
       };
       saveGrievanceReply(id, replyData);
-      // Fire-and-forget notification to citizen
+      // Fire-and-forget notification to citizen — includes their mobile number
+      // so they can be identified in the notification bar
       if (actor) {
-        actor
-          .addNotification(
-            `तक्रार उत्तर: ${citizenName}`,
-            `तुमच्या तक्रारीला उत्तर आले आहे: ${reply.substring(0, 100)}`,
-          )
-          .catch(() => {});
+        const notifTitle = `उत्तर मिळाले: ${citizenName}`;
+        const notifBody = `📞 ${citizenMobile} - तुमच्या तक्रारीला उत्तर: ${reply.substring(0, 80)}`;
+        actor.addNotification(notifTitle, notifBody).catch(() => {});
       }
       return replyData;
     },
